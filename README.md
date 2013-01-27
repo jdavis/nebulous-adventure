@@ -1,4 +1,4 @@
 nub
 ===
 
-A text editor with style.
+A simple & beautiful text editor with style.
