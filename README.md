@@ -1,4 +1,4 @@
-nub
-===
+nebulous-adventure
+==================
 
-A simple & beautiful text editor with style.
+A text adventure that is as quite vague.
