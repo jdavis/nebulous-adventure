@@ -1,4 +1,4 @@
 nebulous-adventure
 ==================
 
-A text adventure that is as quite vague.
+A text adventure that is quite vague.
