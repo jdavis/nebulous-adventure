@@ -4,5 +4,9 @@
 
 
 (function (root, $) {
-    console.log('So nebulous.')
+    // Focus prompt on load
+    $(document).ready(function() {
+        $('#prompt').focus();
+    });
+
 }(window, jQuery));
