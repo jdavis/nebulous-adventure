@@ -23,6 +23,7 @@ body {
 .console {
     padding: 40px 40px;
     height: 500px;
+    overflow-y: hidden;
 }
 
 .console > p {
@@ -62,14 +63,14 @@ span.purple {
     float: left;
 }
 
-.prompt > label {
+.prompt label {
     margin: 0 15px;
     font-size: 24px;
     padding: 10px;
     float: left;
 }
 
-.prompt > a {
+.prompt a, .prompt span {
     color: #E4E7E7;
     margin: 0 15px;
     font-size: 24px;
@@ -77,7 +78,7 @@ span.purple {
     float: left;
 }
 
-.prompt > input {
+.prompt input {
     width: 810px;
     border: none;
     font-size: 24px;
@@ -90,7 +91,7 @@ span.purple {
             border-radius: 4px;
 }
 
-.prompt > input:focus {
+.prompt input:focus {
     border: none;
     outline: none;
 }
