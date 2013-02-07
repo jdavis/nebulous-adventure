@@ -38,6 +38,7 @@
             }, 200);
 
         command($prompt.val());
+        $prompt.val('');
         $console.get(0).scrollTop = $console.get(0).scrollHeight;
 
         return false;
