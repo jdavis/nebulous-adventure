@@ -5,6 +5,15 @@ api_version: 1
 threadsafe: false
 
 handlers:
+- url: /img
+  static_dir: img
+
+- url: /css
+  static_dir: css
+
+- url: /js
+  static_dir: js
+
 - url: .*
   script: main.py
 
