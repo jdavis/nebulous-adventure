@@ -3,7 +3,10 @@
 /* Nebulous Adventure */
 
 
-(function (root, $) {
+var app = app||(function (root, $) {
+    var url_by_command = {'new':'/new/',
+                          'resume':'/resume/'};
+
     var $console = $('.console'),
         $prompt = $('#prompt'),
         command = function command(text) {
@@ -37,15 +40,45 @@
                 }
             }, 200);
 
+
+        var user_input = $prompt.val().split(' ');
+        var user_command = user_input.shift();
+        var user_arguments = user_input.join(' ');
+
+
         command($prompt.val());
         $prompt.val('');
         $console.get(0).scrollTop = $console.get(0).scrollHeight;
 
+        if (user_command in url_by_command)
+        {
+            $.ajax({
+                type: "GET",
+                dataType: 'json',
+                data: {'args':user_arguments},
+                url: url_by_command[user_command]
+            }).done(function(data){
+                if(data.hasOwnProperty("console"))
+                {
+                    command(data.console);
+                }
+                if(data.hasOwnProperty("new_commands"))
+                {
+                    url_by_command = data.new_commands;
+                }
+            });
+        }
+        else
+        {
+            command('command not recognized');
+        }
+
+
         return false;
     });
-
     // Show help
-    $('.prompt a').on('click', function () {
+    $('.prompt a').on('click', function () {   
+
         alert('Eventually a help will show up here. ;)');
     });
 }(window, jQuery));
