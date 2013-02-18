@@ -1,12 +1,17 @@
 from google.appengine.ext import db
-# from base import actions
+
 
 import logging
 
+class Item(db.Model):
+	name = db.StringProperty() 
+	description = db.StringProperty()
 
-class Player(db.Model):
-	name = db.StringProperty()
-	items = db.ListProperty(db.Key)
+class Character(db.Model):
+	name = db.StringProperty() 	
+	description = db.StringProperty()
+	items = db.ListProperty(db.Key) 
+	script = db.StringProperty()
 
 class Area(db.Model):
 	name = db.StringProperty() 	
@@ -23,38 +28,25 @@ class Area(db.Model):
 
 	def get_direction(self, direction):
 		new_area_key = self.connecting_areas[direction]
-		return get_area_by_key(new_area_key)
+		return Actions().get_area_by_key(new_area_key)
 
-class Character(db.Model):
-	name = db.StringProperty() 	
-	description = db.StringProperty()
-	items = db.ListProperty(db.Key) 	
-	script = db.StringProperty()
-
-class Item(db.Model):
-	name = db.StringProperty() 
-	description = db.StringProperty()
-
-class World(db.Model):
-	player = db.ReferenceProperty(Player)
+class Player(db.Model):
+	name = db.StringProperty()
+	items = db.ListProperty(db.Key)
 	area = db.ReferenceProperty(Area)
 
+# Datatable actions
+class Actions():
+	def create_new_player(self):
+		new_player = models.Player()
+		new_player.put()
+		return new_player
 
-class SaveState(db.Model):
-	world = db.ReferenceProperty()
+	def get_player_by_key(self, key):
+		return db.get(key)
 
+	def get_area_by_key(self, key):
+		return db.get(key)	
 
-
-
-def create_new_world():
-	new_world = models.World()
-	new_world.put()
-	return new_world.key()
-
-def get_world_by_key(key):
-	return db.get(key)
-
-def get_area_by_key(key):
-	return db.get(key)	
 
 

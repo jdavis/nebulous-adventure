@@ -11,33 +11,44 @@ class Direction():
 	def translate_direction(self, direction):
 		return self.Direction_Dictionary.get(direction.lower(), self.Unknown)
 
+	# helps keep consistancy with the mapping 
+	# when generating areas 
 	def map_areas(self,n,s,e,w):
 		return [n,s,e,w]
 
-def generate_test_world():
-	a = models.Area(name = 'start', description = 'start description')
-	a.put()
-	a.connecting_areas = map_areas(a.key(), a.key(), a.key(), a.key())
-	a.put()
+class Game():
 
-	p = models.Player(name='rob')
-	p.put()
+	# can be ran from interactive console to generete
+	# a quick test world
+	#
+	# from base import utils
+	# utils.Game().generate_test_world()
+	def generate_test_world(self):
+		a = models.Area(name = 'start', description = 'start description')
+		a.put() # we need to put to generate key
+		a.connecting_areas = Direction().map_areas(a.key(), a.key(), a.key(), a.key())
+		a.put()
 
-	w = models.World(area = a.key(), player = p.key(), x = 'no')
-	w.put()
+		p = models.Player(name='rob', area = a)
+		p.put()
+
+	def look(self, uid, args):
+		# todo argument error checking
+		look_direction = Direction().translate_direction(args[0])
+		payer = models.Actions().get_player_by_key(uid)
+		return payer.area.get_direction_description(look_direction)
 
 
-def look(world_key, direction):
-	look_direction = Direction().translate_direction(direction)
-	world = models.get_world_by_key(world_key)
-	return world.area.get_direction_description(look_direction)
+	def move(self, uid, args):
+		# todo argument error checking
+		look_direction = Direction().translate_direction(args[0])
+		player = models.Actions().get_player_by_key(uid)
+		new_area = player.area.get_direction(look_direction)
+		player.area = new_area
+		player.put()
+		return new_area.description
 
-def move(world_key, direction):
-	look_direction = Direction().translate_direction(direction)
-	world = models.get_world_by_key(world_key)
-	new_area = world.area.get_direction(look_direction)
-	world.area = new_area
-	world.put()
-	return new_area.description
+	command_dict = {'look':look,
+					'move':move}
 
 

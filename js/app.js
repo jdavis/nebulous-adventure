@@ -3,9 +3,7 @@
 /* Nebulous Adventure */
 
 
-var app = app||(function (root, $) {
-    var url_by_command = {'new':'/new/',
-                          'resume':'/resume/'};
+(function (root, $) {
 
     var $console = $('.console'),
         $prompt = $('#prompt'),
@@ -39,40 +37,23 @@ var app = app||(function (root, $) {
                     clearInterval(loader);
                 }
             }, 200);
-
-
-        var user_input = $prompt.val().split(' ');
-        var user_command = user_input.shift();
-        var user_arguments = user_input.join(' ');
-
-
+  
         command($prompt.val());
+        
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
+            data: {'command':$prompt.val()},
+            url: '/controller/'
+        }).done(function(data){
+            if(data.hasOwnProperty("console"))
+            {
+                command(data.console);
+            }
+        });
+  
         $prompt.val('');
         $console.get(0).scrollTop = $console.get(0).scrollHeight;
-
-        if (user_command in url_by_command)
-        {
-            $.ajax({
-                type: "GET",
-                dataType: 'json',
-                data: {'args':user_arguments},
-                url: url_by_command[user_command]
-            }).done(function(data){
-                if(data.hasOwnProperty("console"))
-                {
-                    command(data.console);
-                }
-                if(data.hasOwnProperty("new_commands"))
-                {
-                    url_by_command = data.new_commands;
-                }
-            });
-        }
-        else
-        {
-            command('command not recognized');
-        }
-
 
         return false;
     });
