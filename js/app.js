@@ -4,6 +4,7 @@
 
 
 (function (root, $) {
+
     var $console = $('.console'),
         $prompt = $('#prompt'),
         command = function command(text) {
@@ -36,16 +37,29 @@
                     clearInterval(loader);
                 }
             }, 200);
-
+  
         command($prompt.val());
+        
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
+            data: {'command':$prompt.val()},
+            url: '/controller/'
+        }).done(function(data){
+            if(data.hasOwnProperty("console"))
+            {
+                command(data.console);
+            }
+        });
+  
         $prompt.val('');
         $console.get(0).scrollTop = $console.get(0).scrollHeight;
 
         return false;
     });
-
     // Show help
-    $('.prompt a').on('click', function () {
+    $('.prompt a').on('click', function () {   
+
         alert('Eventually a help will show up here. ;)');
     });
 }(window, jQuery));
