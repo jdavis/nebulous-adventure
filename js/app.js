@@ -41,10 +41,11 @@
         command($prompt.val());
         
         $.ajax({
-            type: "GET",
-            dataType: 'json',
-            data: {'command':$prompt.val()},
-            url: '/controller/'
+            url: '/controller/',
+            type: 'POST',
+            data: JSON.stringify({'command':$prompt.val()}),
+            contentType: 'application/json',
+            dataType: 'json'
         }).done(function(data){
             if(data.hasOwnProperty("console"))
             {
