@@ -22,8 +22,7 @@
         var $indicator = $('.prompt label'),
             chars = '|/-\\',
             index = 0,
-            duration = 2000,
-            interval = 200,
+            requestFinished = false,
             time = 0,
             loader = setInterval(function () {
                 $indicator.text(chars[index]);
@@ -31,13 +30,27 @@
                 index = (index + 1) % chars.length;
                 time += interval;
 
-                if (time >= duration) {
+                if (requesting === true) {
                     $indicator.html('&gt;');
                     clearInterval(loader);
                 }
             }, 200);
 
         command($prompt.val());
+        
+        $.ajax({
+            url: '/controller/',
+            type: 'POST',
+            data: JSON.stringify({'command': $prompt.val()}),
+            contentType: 'application/json',
+            dataType: 'json'
+        }).done(function(data){
+            if(data.hasOwnProperty("console")) {
+                command(data.console);
+                requestFinished = true;
+            }
+        });
+  
         $prompt.val('');
         $console.get(0).scrollTop = $console.get(0).scrollHeight;
 
