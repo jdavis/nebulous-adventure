@@ -29,9 +29,8 @@
                 $indicator.text(chars[index]);
 
                 index = (index + 1) % chars.length;
-                time += interval;
 
-                if (requesting === true) {
+                if (requestFinished === true) {
                     $indicator.html('&gt;');
                     clearInterval(loader);
                 }
