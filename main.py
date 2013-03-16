@@ -14,23 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import os
+
 from flask import Flask
+
 from google.appengine.ext.webapp.util import run_wsgi_app
-
-app = Flask(__name__)
-
-ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-
 
 from base import urls as base_urls
 
+app = Flask(__name__)
 
+#
+# Settings
+#
+
+# TODO: Make static for deployment
+SECRET_KEY = os.urandom(24)
+
+#
+# App Settings
+#
 
 base_urls.apply_urls(app)
-
-
-
+app.secret_key = SECRET_KEY
 
 if __name__ == '__main__':
-	run_wsgi_app(app)
+    run_wsgi_app(app)

@@ -4,6 +4,7 @@
 
 
 (function (root, $) {
+
     var $console = $('.console'),
         $prompt = $('#prompt'),
         command = function command(text) {
@@ -35,7 +36,7 @@
                     clearInterval(loader);
                 }
             }, 200);
-
+  
         command($prompt.val());
         
         $.ajax({
@@ -56,9 +57,8 @@
 
         return false;
     });
-
     // Show help
-    $('.prompt a').on('click', function () {
+    $('.prompt a').on('click', function () {   
         alert('Eventually a help will show up here. ;)');
     });
 }(window, jQuery));
