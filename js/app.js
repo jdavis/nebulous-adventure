@@ -43,12 +43,11 @@
         $.ajax({
             url: '/controller/',
             type: 'POST',
-            data: JSON.stringify({'command':$prompt.val()}),
+            data: JSON.stringify({'command': $prompt.val()}),
             contentType: 'application/json',
             dataType: 'json'
         }).done(function(data){
-            if(data.hasOwnProperty("console"))
-            {
+            if(data.hasOwnProperty("console")) {
                 command(data.console);
             }
         });
@@ -60,7 +59,6 @@
     });
     // Show help
     $('.prompt a').on('click', function () {   
-
         alert('Eventually a help will show up here. ;)');
     });
 }(window, jQuery));
