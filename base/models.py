@@ -3,7 +3,8 @@ from google.appengine.ext import db
 
 class Game(object):
     def look(self, uid, direction):
-        pass
+        player = DataStore().get_player(uid)
+        
 
     def move(self, uid, direction):
         pass
@@ -19,6 +20,7 @@ class Game(object):
 
 
 class Character(db.Model):
+    name = db.StringProperty()
     script = db.StringProperty()
 
     def talk(self):
@@ -36,16 +38,18 @@ class Player(db.Model):
         return None
 
     def get_direction(self, direction):
-        return DataStore().get_area_by_id(current_area_key)
+        cur_area = self.get_current_area()
+        return cur_area.get_direction(direction)
 
     def get_current_area(self):
-        pass
+        return DataStore().get_area_by_id(current_area_key)
 
     def set_area(self, area):
-        pass
+        current_area_key = area.key()
 
     def eat_item(self, item_name):
-        pass
+        item = self.get_item(item_name)
+        return item.eat()
 
 
 class Area(db.Model):
@@ -64,7 +68,10 @@ class Area(db.Model):
         return 'Character DNE'
 
     def look(self, direction):
-        pass
+        area = self.get_direction(direction)
+        if area is not None:
+            return area.get_description()
+        return 'Area DNE'
 
 
 class Item(db.Model):
