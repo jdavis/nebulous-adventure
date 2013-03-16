@@ -4,19 +4,38 @@ from google.appengine.ext import db
 class Game(object):
     def look(self, uid, direction):
         player = DataStore().get_player(uid)
-        
+        area = player.get_direction(direction)
+        if area is not None:
+            return area.get_description()
+        return 'Nothing over there...'
 
     def move(self, uid, direction):
-        pass
+        player = DataStore().get_player(uid)
+        area = player.get_direction(direction)
+        if area is not None:
+            to_return = player.set_area(area)
+            player.put()
+            return to_return
+        return 'Ummmm I can not go over there...'
 
     def examine(self, uid, item_name):
-        pass
+        player = DataStore().get_player(uid)
+        item = player.get_item(item_name)
+        if item is not None:
+            return item.get_description()
+        return 'I do not have that item...'
 
     def talk(self, uid, char_name):
-        pass
+        player = DataStore().get_player(uid)
+        area = player.get_current_area()
+        if area is not None:
+            return area.talk_to(char_name)
+        return 'There is no one by that name...'
 
     def eat(self, uid, item_name):
-        pass
+        player = DataStore().get_player(uid)
+        return player.eat_item(item_name)
+
 
 
 class Character(db.Model):
@@ -39,13 +58,16 @@ class Player(db.Model):
 
     def get_direction(self, direction):
         cur_area = self.get_current_area()
-        return cur_area.get_direction(direction)
+        if cur_area is not None:
+            return cur_area.get_direction(direction)
+        return None
 
     def get_current_area(self):
         return DataStore().get_area_by_id(current_area_key)
 
     def set_area(self, area):
         current_area_key = area.key()
+        return area.get_description
 
     def eat_item(self, item_name):
         item = self.get_item(item_name)
