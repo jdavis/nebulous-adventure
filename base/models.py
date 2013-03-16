@@ -19,16 +19,24 @@ class Game(object):
 
 
 class Character(db.Model):
+    script = db.StringProperty()
+
     def talk(self):
-        pass
+        return script
 
 
 class Player(db.Model):
+    inventory = db.ListProperty(db.Key)
+    current_area_key = db.StringProperty()
+
     def get_item(self, item_name):
-        pass
+        item = DataStore().get_item_by_name(item_name)
+        if item is not None and item.key() in inventory:
+            return item
+        return None
 
     def get_direction(self, direction):
-        pass
+        return DataStore().get_area_by_id(current_area_key)
 
     def get_current_area(self):
         pass
@@ -41,22 +49,30 @@ class Player(db.Model):
 
 
 class Area(db.Model):
+    description = db.StringProperty()
+
     def get_description(self):
-        pass
+        return description
 
     def get_direction(self, direction):
         pass
 
     def talk_to(self, char_name):
-        pass
+        character = DataStore().get_character_by_name(char_name)
+        if character is not None:
+            return character.talk()
+        return 'Character DNE'
 
     def look(self, direction):
         pass
 
 
 class Item(db.Model):
+    name = db.StringProperty()
+    description = db.StringProperty()
+
     def get_description(self):
-        pass
+        return description
 
     def eat_item(self):
         pass
@@ -64,16 +80,16 @@ class Item(db.Model):
 
 class DataStore(object):
     def get_item_by_name(self, item_name):
-        pass
+        return Item.all().filter('name', item_name).get()
 
     def put_player(self, player):
-        pass
+        player.put()
 
     def get_player(self, id):
-        pass
+        return db.get(id)
 
     def get_character_by_name(self, name):
-        pass
+        return Character.all().filter('name', item_name).get()
 
     def get_area_by_id(self, id):
-        pass
+        return db.get(id)
