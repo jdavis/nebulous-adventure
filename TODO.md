@@ -8,7 +8,10 @@ TODO
 
 ### Todo
 * How get\_direction works
-* Fix home page
+* Fix home page input box
+* Implement any method with a `pass`
+* Generate/create test data
+* Unit tests
 
 ## Iteration 2
 
