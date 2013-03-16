@@ -1,7 +1,7 @@
 from google.appengine.ext import db
 
 
-class Game(Object):
+class Game(object):
     def look(self, uid, direction):
         pass
 
@@ -62,7 +62,7 @@ class Item(db.Model):
         pass
 
 
-class DataStore(Object):
+class DataStore(object):
     def get_item_by_name(self, item_name):
         pass
 
