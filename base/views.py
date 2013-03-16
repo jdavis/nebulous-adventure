@@ -54,7 +54,7 @@ class GameController(MethodView):
             logging.info('Invalid command requested {0}'.format(command))
             result = 'That is an invalid command.'
         else:
-            logging.info('Calling {0} with args: {0}'.format(command, args))
+            logging.info('Calling {0} with args: {1}'.format(command, ','.join(args)))
             try:
                 result = action(uid, *args)
             except TypeError:
