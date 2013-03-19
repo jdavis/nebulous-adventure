@@ -10,7 +10,7 @@ TODO
 * How get\_direction works
 * Fix home page input box
 * Implement any method with a `pass`
-* Generate/create test data
+* Generate/create test data (Robert)
 * Unit tests
 
 ## Iteration 2
