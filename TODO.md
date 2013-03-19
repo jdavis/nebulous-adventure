@@ -7,7 +7,7 @@ TODO
 * Should put\_player() be removed?
 
 ### Todo
-* How get\_direction works
+* How get\_direction works (Robert)
 * Fix home page input box
 * Implement any method with a `pass`
 * Generate/create test data (Robert)
