@@ -3,22 +3,43 @@ from google.appengine.ext import db
 
 class Game(object):
     def look(self, uid, direction):
-        pass
+        player = DataStore().get_player(uid)
+        area = player.get_direction(direction)
+        if area is not None:
+            return area.get_description()
+        return 'Nothing over there...'
 
     def move(self, uid, direction):
-        pass
+        player = DataStore().get_player(uid)
+        area = player.get_direction(direction)
+        if area is not None:
+            to_return = player.set_area(area)
+            player.put()
+            return to_return
+        return 'Ummmm I can not go over there...'
 
     def examine(self, uid, item_name):
-        pass
+        player = DataStore().get_player(uid)
+        item = player.get_item(item_name)
+        if item is not None:
+            return item.get_description()
+        return 'I do not have that item...'
 
     def talk(self, uid, char_name):
-        pass
+        player = DataStore().get_player(uid)
+        area = player.get_current_area()
+        if area is not None:
+            return area.talk_to(char_name)
+        return 'There is no one by that name...'
 
     def eat(self, uid, item_name):
-        pass
+        player = DataStore().get_player(uid)
+        return player.eat_item(item_name)
+
 
 
 class Character(db.Model):
+    name = db.StringProperty()
     script = db.StringProperty()
 
     def talk(self):
@@ -36,16 +57,21 @@ class Player(db.Model):
         return None
 
     def get_direction(self, direction):
-        return DataStore().get_area_by_id(current_area_key)
+        cur_area = self.get_current_area()
+        if cur_area is not None:
+            return cur_area.get_direction(direction)
+        return None
 
     def get_current_area(self):
-        pass
+        return DataStore().get_area_by_id(current_area_key)
 
     def set_area(self, area):
-        pass
+        current_area_key = area.key()
+        return area.get_description
 
     def eat_item(self, item_name):
-        pass
+        item = self.get_item(item_name)
+        return item.eat()
 
 
 class Area(db.Model):
@@ -64,7 +90,10 @@ class Area(db.Model):
         return 'Character DNE'
 
     def look(self, direction):
-        pass
+        area = self.get_direction(direction)
+        if area is not None:
+            return area.get_description()
+        return 'Area DNE'
 
 
 class Item(db.Model):
