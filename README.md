@@ -1,7 +1,7 @@
 nebulous-adventure
 ==================
 
-A text adventure game for [Computer Science 362][ComS362] at Iowa State University.
+A text adventure game for [Computer Science 362][ComS362] at Iowa State University taught by [Leslie Miller][Les].
 
 ## About the Class
 
@@ -30,4 +30,5 @@ he knows we can program, he cares more about seeing if we can design.
 TODO
 
 [ComS362]: http://www.cs.iastate.edu/~lmiller/ComS362.htm
+[Les]: http://www.cs.iastate.edu/~lmiller/
 [UML]: http://amzn.com/0131489062
