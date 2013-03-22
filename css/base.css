@@ -14,19 +14,27 @@ body {
 /* We could make this webpage responsive o.O */
 
 .container {
-    width: 960px;
+    width: 940px;
     height: 100%;
     margin: 0 auto;
     background-color: #26282B;
+    overflow: hidden;
+    position: relative;
 }
 
 .console {
-    padding: 40px 40px;
-    height: 400px;
-    overflow-y: hidden;
+    height: 100%;
+    width: 960px;
+    overflow-y: scroll;
+    margin-bottom: -100px;
 }
 
-.console > p {
+.console div.content {
+    padding: 40px 50px;
+    margin-bottom: 100px;
+}
+
+.console div.content > p {
     margin-bottom: 12px;
 }
 
@@ -59,8 +67,12 @@ span.purple {
 }
 
 .prompt {
+    height: 60px;
+    padding-bottom: 40px;
     width: 100%;
-    float: left;
+    background-color: #26282B;
+    position: absolute;
+    z-index: 1;
 }
 
 .prompt label {
@@ -79,7 +91,7 @@ span.purple {
 }
 
 .prompt input {
-    width: 810px;
+    width: 790px;
     border: none;
     font-size: 24px;
     float: left;
