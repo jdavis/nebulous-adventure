@@ -6,4 +6,5 @@ public interface AreaInterface {
     public Area getDirection(String direction);
     public Character getCharacter(String name);
     public String look(String direction);
+    public String talkTo(String name);
 }
