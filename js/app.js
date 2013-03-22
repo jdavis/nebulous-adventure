@@ -5,7 +5,8 @@
 
 (function (root, $) {
 
-    var $console = $('.console'),
+    var $console = $('.console div.content'),
+        $scroll = $('.console'),
         $prompt = $('#prompt'),
         command = function command(text) {
             $('<p>')
@@ -35,9 +36,9 @@
                     clearInterval(loader);
                 }
             }, 200);
-  
+
         command($prompt.val());
-        
+
         $.ajax({
             url: '/controller/',
             type: 'POST',
@@ -50,14 +51,14 @@
                 requestFinished = true;
             }
         });
-  
+
         $prompt.val('');
-        $console.get(0).scrollTop = $console.get(0).scrollHeight;
+        $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
 
         return false;
     });
     // Show help
-    $('.prompt a').on('click', function () {   
+    $('.prompt a').on('click', function () {
         alert('Eventually a help will show up here. ;)');
     });
 }(window, jQuery));
