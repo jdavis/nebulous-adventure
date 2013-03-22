@@ -24,3 +24,5 @@ by Use Case
 ## Eat
 * Game is an IE wrt Player
 * Player is an IE wrt Items
+
+wrt = with respect to
