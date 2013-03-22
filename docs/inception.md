@@ -1,4 +1,5 @@
-# Inception Paragraph
+Inception Paragraph
+===================
 
 Create a text adventure game that is to be ran from the command line.  In this
 game you are allowed to enter commands to interact with your environment.  Some
