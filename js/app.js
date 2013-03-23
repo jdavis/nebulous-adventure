@@ -5,7 +5,8 @@
 
 (function (root, $) {
 
-    var $console = $('.console'),
+    var $console = $('.console div.content'),
+        $scroll = $('.console'),
         $prompt = $('#prompt'),
         command = function command(text) {
             $('<p>')
@@ -23,23 +24,21 @@
         var $indicator = $('.prompt label'),
             chars = '|/-\\',
             index = 0,
-            duration = 2000,
-            interval = 200,
+            requestFinished = false,
             time = 0,
             loader = setInterval(function () {
                 $indicator.text(chars[index]);
 
                 index = (index + 1) % chars.length;
-                time += interval;
 
-                if (time >= duration) {
+                if (requestFinished === true) {
                     $indicator.html('&gt;');
                     clearInterval(loader);
                 }
             }, 200);
-  
+
         command($prompt.val());
-        
+
         $.ajax({
             url: '/controller/',
             type: 'POST',
@@ -49,16 +48,17 @@
         }).done(function(data){
             if(data.hasOwnProperty("console")) {
                 command(data.console);
+                requestFinished = true;
             }
         });
-  
+
         $prompt.val('');
-        $console.get(0).scrollTop = $console.get(0).scrollHeight;
+        $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
 
         return false;
     });
     // Show help
-    $('.prompt a').on('click', function () {   
+    $('.prompt a').on('click', function () {
         alert('Eventually a help will show up here. ;)');
     });
 }(window, jQuery));
