@@ -34,7 +34,7 @@ class GameController(MethodView):
         if 'uid' not in session:
             session['uid'] = os.urandom(24)
 
-        uid = session['uid']
+        uid = session['uid'].encode('hex')
 
         json_request = json.loads(request.data)
         raw_command = json_request.get('command', '')

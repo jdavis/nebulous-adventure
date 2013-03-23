@@ -1,20 +1,27 @@
 from google.appengine.ext import db
+from base import utils
+import logging
 
 
 class Game(object):
-    def look(self, uid, direction):
+    def look(self, uid, direction=""):
         player = DataStore().get_player(uid)
-        area = player.get_direction(direction)
+        cur_area = player.get_current_area()
+
+        if direction == "":
+            return cur_area.get_description()
+
+        area = utils.check_map(cur_area, direction)
         if area is not None:
             return area.get_description()
         return 'Nothing over there...'
 
     def move(self, uid, direction):
         player = DataStore().get_player(uid)
-        area = player.get_direction(direction)
+        area = utils.check_map(player.get_current_area(), direction)
         if area is not None:
             to_return = player.set_area(area)
-            player.put()
+            DataStore().put_player(player)
             return to_return
         return 'Ummmm I can not go over there...'
 
@@ -37,37 +44,33 @@ class Game(object):
         return player.eat_item(item_name)
 
 
-
 class Character(db.Model):
     name = db.StringProperty()
     script = db.StringProperty()
 
     def talk(self):
-        return script
+        return self.script
+
+    def get_name(self):
+        return self.name
 
 
 class Player(db.Model):
-    inventory = db.ListProperty(db.Key)
-    current_area_key = db.StringProperty()
+    player_id = db.StringProperty()
+    inventory = db.StringListProperty()
+    current_area_name = db.StringProperty()
 
     def get_item(self, item_name):
-        item = DataStore().get_item_by_name(item_name)
-        if item is not None and item.key() in inventory:
-            return item
-        return None
-
-    def get_direction(self, direction):
-        cur_area = self.get_current_area()
-        if cur_area is not None:
-            return cur_area.get_direction(direction)
+        if item_name in inventory:
+            return DataStore().get_item_by_name(item_name)
         return None
 
     def get_current_area(self):
-        return DataStore().get_area_by_id(current_area_key)
+        return DataStore().get_area_by_name(self.current_area_name)
 
     def set_area(self, area):
-        current_area_key = area.key()
-        return area.get_description
+        self.current_area_name = area.get_name()
+        return area.get_description()
 
     def eat_item(self, item_name):
         item = self.get_item(item_name)
@@ -76,24 +79,21 @@ class Player(db.Model):
 
 class Area(db.Model):
     description = db.StringProperty()
+    name = db.StringProperty()
+    characters = db.StringListProperty()
+
+    def get_name(self):
+        return self.name
 
     def get_description(self):
-        return description
-
-    def get_direction(self, direction):
-        pass
+        return self.description
 
     def talk_to(self, char_name):
-        character = DataStore().get_character_by_name(char_name)
-        if character is not None:
-            return character.talk()
+        if char_name in self.characters:
+            character = DataStore().get_character_by_name(char_name)
+            if character is not None:
+                return character.talk()
         return 'Character DNE'
-
-    def look(self, direction):
-        area = self.get_direction(direction)
-        if area is not None:
-            return area.get_description()
-        return 'Area DNE'
 
 
 class Item(db.Model):
@@ -106,19 +106,26 @@ class Item(db.Model):
     def eat_item(self):
         pass
 
+    def get_name(self):
+        return self.name
+
 
 class DataStore(object):
     def get_item_by_name(self, item_name):
         return Item.all().filter('name', item_name).get()
 
+    def get_character_by_name(self, name):
+        return Character.all().filter('name', name).get()
+
+    def get_area_by_name(self, name):
+        return Area.all().filter('name', name).get()
+
     def put_player(self, player):
         player.put()
 
-    def get_player(self, id):
-        return db.get(id)
-
-    def get_character_by_name(self, name):
-        return Character.all().filter('name', item_name).get()
-
-    def get_area_by_id(self, id):
-        return db.get(id)
+    def get_player(self, uid):
+        player = Player.all().filter('player_id', uid).get()
+        if player is None:
+            player = Player(player_id = uid, inventory = [], current_area_name = 'start')
+            self.put_player(player)
+        return player
