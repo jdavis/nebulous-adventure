@@ -151,7 +151,7 @@ class Game(object):
         result = ['List of available commands:\n']
 
         if cmd not in Game.command_list:
-            result 'You expect me to know what that is?'
+            return 'You expect me to know what that is?'
 
         for cmd in Game.command_list:
             if cmd == 'help':
