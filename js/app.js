@@ -8,15 +8,19 @@
     var $console = $('.console div.content'),
         $scroll = $('.console'),
         $prompt = $('#prompt'),
-        command = function command(text) {
+        command = function (text) {
             $('<pre>')
                 .text('> ' + text)
                 .appendTo($console);
         },
-        reply = function reply(text) {
+        reply = function (text) {
             $('<pre>')
                 .text(text)
                 .appendTo($console);
+        },
+        resetPrompt = function () {
+            $prompt.val('');
+            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
         };
 
     // Focus prompt on load
@@ -55,9 +59,7 @@
                 reply(data.console);
                 requestFinished = true;
             }
-
-            $prompt.val('');
-            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
+            resetPrompt();
         });
 
         return false;
@@ -75,8 +77,8 @@
         }).done(function(data){
             if(data.hasOwnProperty("console")) {
                 reply(data.console);
-                requestFinished = true;
             }
+            resetPrompt();
         });
     });
 }(window, jQuery));

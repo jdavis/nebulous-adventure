@@ -38,34 +38,33 @@ body {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     margin-bottom: 12px;
     font-size: 14px;
-    color: #E4E7E7;
 }
 
-span.orange {
+.orange {
     color: #D87D50;
 }
 
-span.blue {
+.blue {
     color: #889AB4;
 }
 
-span.light-yellow {
+.light-yellow {
     color: #F9EE98;
 }
 
-span.green {
+.green {
     color: #8F9D6A;
 }
 
-span.rust {
+.rust {
     color: #9B5C2E;
 }
 
-span.red {
+.red {
     color: #FF6400;
 }
 
-span.purple {
+.purple {
     color: #9B859D;
 }
 

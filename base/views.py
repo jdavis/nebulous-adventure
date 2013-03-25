@@ -31,6 +31,9 @@ class HomeView(MethodView):
 
 
 class GameController(MethodView):
+    def get(self):
+        return json.dumps(action_map.keys())
+
     def post(self):
         if 'uid' not in session:
             session['uid'] = os.urandom(24)
