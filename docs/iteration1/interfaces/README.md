@@ -1,7 +1,5 @@
 Java Interfaces
 ===============
 
-The professor's heartthrob is Java he and wanted every team to write Java
-interfaces for the project... even though we are programming in Python.
-
-Oh well.
+The Professor has extensive exprience/knowledge of Java so he wanted
+us to write the class interfaces in Java.
