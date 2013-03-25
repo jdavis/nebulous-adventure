@@ -9,8 +9,13 @@
         $scroll = $('.console'),
         $prompt = $('#prompt'),
         command = function command(text) {
-            $('<p>')
+            $('<pre>')
                 .text('> ' + text)
+                .appendTo($console);
+        },
+        reply = function reply(text) {
+            $('<pre>')
+                .text(text)
                 .appendTo($console);
         };
 
@@ -47,7 +52,7 @@
             dataType: 'json'
         }).done(function(data){
             if(data.hasOwnProperty("console")) {
-                command(data.console);
+                reply(data.console);
                 requestFinished = true;
             }
         });
@@ -59,6 +64,19 @@
     });
     // Show help
     $('.prompt a').on('click', function () {
-        alert('Eventually a help will show up here. ;)');
+        command('help');
+
+        $.ajax({
+            url: '/controller/',
+            type: 'POST',
+            data: JSON.stringify({'command': 'help'}),
+            contentType: 'application/json',
+            dataType: 'json'
+        }).done(function(data){
+            if(data.hasOwnProperty("console")) {
+                reply(data.console);
+                requestFinished = true;
+            }
+        });
     });
 }(window, jQuery));

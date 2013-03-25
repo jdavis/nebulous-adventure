@@ -34,8 +34,11 @@ body {
     margin-bottom: 100px;
 }
 
-.console div.content > p {
+.console div.content > p, .console div.content > pre {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     margin-bottom: 12px;
+    font-size: 14px;
+    color: #E4E7E7;
 }
 
 span.orange {
