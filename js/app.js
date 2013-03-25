@@ -55,10 +55,10 @@
                 reply(data.console);
                 requestFinished = true;
             }
-        });
 
-        $prompt.val('');
-        $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
+            $prompt.val('');
+            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
+        });
 
         return false;
     });
