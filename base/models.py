@@ -150,7 +150,7 @@ class Game(object):
 
         result = ['List of available commands:\n']
 
-        if cmd not in Game.command_list:
+        if cmd is not None and not in Game.command_list:
             return 'You expect me to know what that is?'
 
         for cmd in Game.command_list:
