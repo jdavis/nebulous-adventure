@@ -1,11 +1,50 @@
+import sys
+
+
+def trim_docstring(docstring):
+    """
+    Trims a docstring to remove blank lines at the beginning and the end.
+
+    Also removes any indentation from the beginning of the line in the
+    docstring.
+
+    Taken from PEP257: http://www.python.org/dev/peps/pep-0257/
+
+    """
+
+    if not docstring:
+        return ''
+    # Convert tabs to spaces (following the normal Python rules)
+    # and split into a list of lines:
+    lines = docstring.expandtabs().splitlines()
+    # Determine minimum indentation (first line doesn't count):
+    indent = sys.maxint
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    # Remove indentation (first line is special):
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxint:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    # Strip off trailing and leading blank lines:
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    # Return a single string:
+    return '\n'.join(trimmed)
+
+
 class GameData(object):
     world_map = {
-        'start' : {'connecting_areas':{'n':'dungeon', 's':'dungeon', 'e':'dungeon', 'w':'dungeon'}, 
-                   'description':'You see that your room is messy and a cat rolling around in a pile of socks...', 
+        'start' : {'connecting_areas':{'n':'dungeon', 's':'dungeon', 'e':'dungeon', 'w':'dungeon'},
+                   'description':'You see that your room is messy and a cat rolling around in a pile of socks...',
                    'characters':['Cat']},
 
-        'dungeon' : {'connecting_areas':{'n':'start', 's':'start', 'e':'start', 'w':'start'}, 
-                   'description':'You see a dungeon... weird... why is that next to your room?', 
+        'dungeon' : {'connecting_areas':{'n':'start', 's':'start', 'e':'start', 'w':'start'},
+                   'description':'You see a dungeon... weird... why is that next to your room?',
                    'characters':[]}
     }
 
