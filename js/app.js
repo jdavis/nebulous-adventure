@@ -8,10 +8,19 @@
     var $console = $('.console div.content'),
         $scroll = $('.console'),
         $prompt = $('#prompt'),
-        command = function command(text) {
-            $('<p>')
+        command = function (text) {
+            $('<pre>')
                 .text('> ' + text)
                 .appendTo($console);
+        },
+        reply = function (text) {
+            $('<pre>')
+                .text(text)
+                .appendTo($console);
+        },
+        resetPrompt = function () {
+            $prompt.val('');
+            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
         };
 
     // Focus prompt on load
@@ -47,18 +56,29 @@
             dataType: 'json'
         }).done(function(data){
             if(data.hasOwnProperty("console")) {
-                command(data.console);
+                reply(data.console);
                 requestFinished = true;
             }
+            resetPrompt();
         });
-
-        $prompt.val('');
-        $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
 
         return false;
     });
     // Show help
     $('.prompt a').on('click', function () {
-        alert('Eventually a help will show up here. ;)');
+        command('help');
+
+        $.ajax({
+            url: '/controller/',
+            type: 'POST',
+            data: JSON.stringify({'command': 'help'}),
+            contentType: 'application/json',
+            dataType: 'json'
+        }).done(function(data){
+            if(data.hasOwnProperty("console")) {
+                reply(data.console);
+            }
+            resetPrompt();
+        });
     });
 }(window, jQuery));

@@ -30,7 +30,7 @@ app = Flask(__name__)
 #
 
 # TODO: Make static for deployment
-SECRET_KEY = os.urandom(24)
+SECRET_KEY = 'this_is_our_secret_key'
 
 #
 # App Settings

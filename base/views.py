@@ -18,6 +18,7 @@ action_map = {
     'look': game.look,
     'move': game.move,
     'talk': game.talk,
+    'help': game.help,
 }
 
 
@@ -30,11 +31,14 @@ class HomeView(MethodView):
 
 
 class GameController(MethodView):
+    def get(self):
+        return json.dumps(action_map.keys())
+
     def post(self):
         if 'uid' not in session:
             session['uid'] = os.urandom(24)
 
-        uid = session['uid']
+        uid = session['uid'].encode('hex')
 
         json_request = json.loads(request.data)
         raw_command = json_request.get('command', '')
@@ -57,7 +61,8 @@ class GameController(MethodView):
             logging.info('Calling {0} with args: {1}'.format(command, ','.join(args)))
             try:
                 result = action(uid, *args)
-            except TypeError:
+            except TypeError, e:
+                logging.error('Got error {0}'.format(e))
                 logging.info('Not enough arguments given for command {0}'.format(command))
                 result = 'Not enough arguments given.'
 
