@@ -2,7 +2,7 @@
 # Source Code for Nebulous Adventure
 
 
-## ..
+## main.py
 
 ```python
 #!/usr/bin/env python
@@ -51,19 +51,19 @@ if __name__ == '__main__':
 
 ```
 
-## ../..
+## base/__init__.py
 
 ```python
 
 ```
 
-## ../..
+## base/actions.py
 
 ```python
 
 ```
 
-## ../..
+## base/models.py
 
 ```python
 from google.appengine.ext import db
@@ -324,7 +324,7 @@ class DataStore(object):
 
 ```
 
-## ../..
+## base/urls.py
 
 ```python
 from base import views as base_views
@@ -337,7 +337,7 @@ def apply_urls(app):
 
 ```
 
-## ../..
+## base/utils.py
 
 ```python
 import sys
@@ -455,7 +455,7 @@ def generate_test_data(erase_reset=True):
 
 ```
 
-## ../..
+## base/views.py
 
 ```python
 import json
@@ -530,7 +530,7 @@ class GameController(MethodView):
 
 ```
 
-## ../..
+## css/base.css
 
 ```css
 html, body, div, h1, h2, h3, h4, h5, h6, ul, ol, dl, li, dt, dd, p, blockquote, pre, form, fieldset, table, th, td { margin: 0; padding: 0; }
@@ -647,7 +647,7 @@ body {
 
 ```
 
-## ../..
+## js/app.js
 
 ```javascript
 'use strict';
@@ -737,7 +737,7 @@ body {
 
 ```
 
-## ../..
+## scripts/concat.py
 
 ```python
 import os
@@ -763,10 +763,7 @@ def writeHeader(output):
 	output.write('\n\n')
 
 def writeSource(output, file, lang):
-	print 'File = ' + file
-	print 'Cwd = ' + src_dir
-	print 'REl = ' + os.path.relpath(file, src_dir)
-	rel_file = os.path.relpath(src_dir, file)
+	rel_file = os.path.relpath(file)
 	# Write Markdown header info
 	output.write('\n')
 	output.write('## {0}'.format(rel_file))
@@ -822,7 +819,7 @@ if __name__ == '__main__':
 	sys.exit(main(sys.argv))
 ```
 
-## ../..
+## templates/base.html
 
 ```html
 <!DOCTYPE html>
