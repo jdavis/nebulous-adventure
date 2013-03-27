@@ -4,7 +4,7 @@ import sys
 src_dir = os.getcwd()
 
 languages = {
-  '.py': 'python',
+	'.py': 'python',
 	'.js': 'javascript',
 	'.html': 'html',
 	'.css': 'css',
@@ -21,10 +21,10 @@ def writeHeader(output):
 	output.write('\n\n')
 
 def writeSource(output, file, lang):
-	print 'Writing source!'
+	rel_file = os.path.relpath(file, src_dir)
 	# Write Markdown header info
 	output.write('\n')
-	output.write('## {0}'.format(file))
+	output.write('## {0}'.format(rel_file))
 	output.write('\n\n')
 	
 	# Write GitHub flavored Markdown info
@@ -62,7 +62,7 @@ def visit(output, dirname, files):
 			writeSource(output, file_path, lang)
 			
 def main(args):
-	output = open(os.path.join(src_dir, 'OUTPUT.md'), 'w')
+	output = open(os.path.join(src_dir, 'SOURCE.md'), 'w')
 	writeHeader(output)
 	
 	# Well this function is short =]
