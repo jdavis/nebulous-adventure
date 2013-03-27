@@ -2,7 +2,7 @@
 # Source Code for Nebulous Adventure
 
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/main.py
+## ..
 
 ```python
 #!/usr/bin/env python
@@ -51,19 +51,19 @@ if __name__ == '__main__':
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/base/__init__.py
+## ../..
 
 ```python
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/base/actions.py
+## ../..
 
 ```python
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/base/models.py
+## ../..
 
 ```python
 from google.appengine.ext import db
@@ -89,7 +89,7 @@ class Game(object):
             look [<direction>...]
 
         Options:
-            north  	Room to the north
+            north		Room to the north
             south		Room to the south
             east		Room to the east
             west		Room to the west
@@ -324,7 +324,7 @@ class DataStore(object):
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/base/urls.py
+## ../..
 
 ```python
 from base import views as base_views
@@ -337,7 +337,7 @@ def apply_urls(app):
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/base/utils.py
+## ../..
 
 ```python
 import sys
@@ -455,7 +455,7 @@ def generate_test_data(erase_reset=True):
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/base/views.py
+## ../..
 
 ```python
 import json
@@ -530,7 +530,7 @@ class GameController(MethodView):
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/css/base.css
+## ../..
 
 ```css
 html, body, div, h1, h2, h3, h4, h5, h6, ul, ol, dl, li, dt, dd, p, blockquote, pre, form, fieldset, table, th, td { margin: 0; padding: 0; }
@@ -647,7 +647,7 @@ body {
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/js/app.js
+## ../..
 
 ```javascript
 'use strict';
@@ -737,7 +737,7 @@ body {
 
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/scripts/concat.py
+## ../..
 
 ```python
 import os
@@ -763,10 +763,13 @@ def writeHeader(output):
 	output.write('\n\n')
 
 def writeSource(output, file, lang):
-	print 'Writing source!'
+	print 'File = ' + file
+	print 'Cwd = ' + src_dir
+	print 'REl = ' + os.path.relpath(file, src_dir)
+	rel_file = os.path.relpath(src_dir, file)
 	# Write Markdown header info
 	output.write('\n')
-	output.write('## {0}'.format(file))
+	output.write('## {0}'.format(rel_file))
 	output.write('\n\n')
 	
 	# Write GitHub flavored Markdown info
@@ -819,7 +822,7 @@ if __name__ == '__main__':
 	sys.exit(main(sys.argv))
 ```
 
-## /Users/joshuad/Downloads/nebulous-adventure-master/templates/base.html
+## ../..
 
 ```html
 <!DOCTYPE html>
