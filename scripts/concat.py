@@ -13,6 +13,7 @@ languages = {
 exclude_dirs = [
 	os.path.join(src_dir, 'flask'),
 	os.path.join(src_dir, 'werkzeug'),
+	os.path.join(src_dir, 'scripts')
 ]
 
 def writeHeader(output):
