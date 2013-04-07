@@ -11,8 +11,8 @@ Use Cases
 
 **MSS**:
 
-	1. User provides a direction.
-	2. The user receives a string with a description of the direction they provided.
+1. User provides a direction.
+2. The user receives a string with a description of the direction they provided.
 
 ## Examine
 
@@ -24,8 +24,8 @@ Use Cases
 
 **MSS**:
 
-	1. User provides an item name to examine.
-	2. The user receives a string with a description of the item.
+1. User provides an item name to examine.
+2. The user receives a string with a description of the item.
 
 ## Move
 
@@ -37,8 +37,8 @@ Use Cases
 
 **MSS**:
 
-	1. User provides a direction to move to.
-	2. The user receives a string with a description of the new area they are in.
+1. User provides a direction to move to.
+2. The user receives a string with a description of the new area they are in.
 
 ## Talk
 
@@ -50,8 +50,8 @@ Use Cases
 
 **MSS**:
 
-	1. User provides a name of a character in the local area.
-	2. The user receives a string with the character’s response.
+1. User provides a name of a character in the local area.
+2. The user receives a string with the character’s response.
 
 ## Eat
 
@@ -63,6 +63,5 @@ Use Cases
 
 **MSS**:
 
-	1. User provides an item name to eat.
-	2. The user receives a string with the results of eating the item.
-
+1. User provides an item name to eat.
+2. The user receives a string with the results of eating the item.
