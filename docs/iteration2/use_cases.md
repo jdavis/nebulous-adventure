@@ -37,7 +37,7 @@ Use Cases
 
 **MSS**:
 
-1. User provides an item to use and an optional list of items to use it with.
+1. User provides an item to use.
 2. The user is notified that the item was successfully used.
 
 ## Attack
