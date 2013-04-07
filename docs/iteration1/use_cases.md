@@ -10,7 +10,8 @@ Use Cases
 **Precondition**: None
 
 **MSS**:
-    1. User provides a direction.
+
+	1. User provides a direction.
 	2. The user receives a string with a description of the direction they provided.
 
 ## Examine
@@ -22,7 +23,8 @@ Use Cases
 **Precondition**: None
 
 **MSS**:
-    1. User provides an item name to examine.
+
+	1. User provides an item name to examine.
 	2. The user receives a string with a description of the item.
 
 ## Move
@@ -34,7 +36,8 @@ Use Cases
 **Precondition**: None
 
 **MSS**:
-    1. User provides a direction to move to.
+
+	1. User provides a direction to move to.
 	2. The user receives a string with a description of the new area they are in.
 
 ## Talk
@@ -46,7 +49,8 @@ Use Cases
 **Precondition**: None
 
 **MSS**:
-    1. User provides a name of a character in the local area.
+
+	1. User provides a name of a character in the local area.
 	2. The user receives a string with the character’s response.
 
 ## Eat
@@ -58,6 +62,7 @@ Use Cases
 **Precondition**: None
 
 **MSS**:
-    1. User provides an item name to eat.
+
+	1. User provides an item name to eat.
 	2. The user receives a string with the results of eating the item.
 
