@@ -11,6 +11,7 @@ class Game(object):
         'talk',
         'eat',
         'help',
+        'take',
     ]
 
     def look(self, uid, direction=""):
@@ -27,7 +28,7 @@ class Game(object):
             west		Room to the west
 
         EXAMPLE:
-            look n s e
+            look n s e w
                 Will print the descriptions of all the given rooms.
 
         NOTES:
@@ -138,6 +139,30 @@ class Game(object):
         player = DataStore().get_player(uid)
         return player.eat_item(item_name)
 
+    def take(self, uid, item_name):
+        """
+        Take the given item that you requested.
+
+        Usage:
+            take <item name>
+
+        Options:
+            Any valid item name in the surrounding area
+
+        EXAMPLE:
+            take sock
+                Will add sock to your inventory.
+        """
+        player = DataStore().get_player(uid)
+        cur_area = player.get_current_area()
+        item = cur_area.take_item(item_name)
+        to_return = player.add_item(item)
+
+        DataStore().put_player(player)
+        DataStore().put_area(cur_area)
+
+        return to_return
+
     def help(self, uid, command=None):
         """
         Now you are just testing the limits of my knowlege.
@@ -189,6 +214,12 @@ class Player(db.Model):
             return DataStore().get_item_by_name(item_name)
         return None
 
+    def add_item(self, item):
+        if item is not None:
+            self.inventory.append(item.get_name())
+            return item.get_description()
+        return "What item?"
+
     def get_current_area(self):
         return DataStore().get_area_by_name(self.current_area_name)
 
@@ -205,6 +236,7 @@ class Area(db.Model):
     description = db.StringProperty()
     name = db.StringProperty()
     characters = db.StringListProperty()
+    items = db.StringListProperty()
 
     def get_name(self):
         return self.name
@@ -219,13 +251,21 @@ class Area(db.Model):
                 return character.talk()
         return 'Character DNE'
 
+    def take_item(self, item_name):
+        if item_name in self.items:
+            item = DataStore().get_item_by_name(item_name)
+            if item is not None:
+                self.items.remove(item_name)
+            return item
+        return None
+
 
 class Item(db.Model):
     name = db.StringProperty()
     description = db.StringProperty()
 
     def get_description(self):
-        return description
+        return self.description
 
     def eat_item(self):
         pass
@@ -246,6 +286,9 @@ class DataStore(object):
 
     def put_player(self, player):
         player.put()
+
+    def put_area(self,area):
+        area.put()
 
     def get_player(self, uid):
         player = Player.all().filter('player_id', uid).get()
