@@ -18,6 +18,7 @@ action_map = {
     'look': game.look,
     'move': game.move,
     'talk': game.talk,
+    'take': game.take,
     'help': game.help,
 }
 

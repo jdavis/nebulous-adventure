@@ -41,11 +41,13 @@ class GameData(object):
     world_map = {
         'start' : {'connecting_areas':{'n':'dungeon', 's':'dungeon', 'e':'dungeon', 'w':'dungeon'},
                    'description':'You see that your room is messy and a cat rolling around in a pile of socks...',
-                   'characters':['Cat']},
+                   'characters':['Cat'],
+                   'items':['Sock']},
 
         'dungeon' : {'connecting_areas':{'n':'start', 's':'start', 'e':'start', 'w':'start'},
                    'description':'You see a dungeon... weird... why is that next to your room?',
-                   'characters':[]}
+                   'characters':[],
+                   'items':[]}
     }
 
     characters = {
@@ -103,9 +105,10 @@ def generate_test_data(erase_reset=True):
     for key, area in GameData().world_map.iteritems():
         new_area = models.Area(name = key,
                                description = area.get('description'),
-                               characters = area.get('characters'))
+                               characters = area.get('characters'),
+                               items = area.get('items'))
         print '********'
-        print '  name: %s\n  description: %s\n  characters: %s'%(new_area.name, new_area.description, new_area.characters)
+        print '  name: %s\n  description: %s\n  characters: %s\n  items: %s'%(new_area.name, new_area.description, new_area.characters, new_area.items)
         to_put.append(new_area)
     print '********'
     db.put(to_put)
