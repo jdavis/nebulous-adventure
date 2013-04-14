@@ -7,10 +7,11 @@ from flask import request, session
 from flask.views import MethodView
 from flask.templating import render_template
 
-from base import models
+
+from base.models import GameController
 
 # Game to Map to
-game = models.Game()
+game = GameController()
 
 action_map = {
     'eat': game.eat,
@@ -31,7 +32,7 @@ class HomeView(MethodView):
         return render_template('base.html')
 
 
-class GameController(MethodView):
+class GameView(MethodView):
     def get(self):
         return json.dumps(action_map.keys())
 
