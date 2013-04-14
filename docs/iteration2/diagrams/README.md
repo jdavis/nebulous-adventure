@@ -6,17 +6,17 @@ Process.
 
 ## List of Diagrams
 
-### Look
-![Look](look.png)
+### Take
+![Take](take.png)
 
-### Examine
-![Examine](examine.png)
+### Put
+![Put](put.png)
 
-### Move
-![Move](move.png)
+### Use
+![Use](use.png)
 
-### Talk
-![Talk](talk.png)
+### Attack
+![Attack](attack.png)
 
-### Eat
-![Eat](eat.png)
+### Die
+![Die](die.png)
