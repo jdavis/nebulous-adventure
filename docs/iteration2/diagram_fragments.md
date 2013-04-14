@@ -5,15 +5,15 @@ Diagram Fragments
 * s = take(i: String, id: String):String
 * s = put(i: String, id: String):String
 * s = use(i: String, id: String):String
-* s = die(i: String, id: String):String
-* s = attack(i: String, id: String):String
+* s = die(id: String):String
+* s = attack(n: String, i: String, id: String):String
 
 ## Game
 * s = take(i: String, id: String):String
 * s = put(i: String, id: String):String
 * s = use(i: String, id: String):String
 * s = die(i: String, id: String):String
-* s = attack(i: String, id: String):String
+* s = attack(n: String, i: String, id: String):String
 
 ## Player
 * ca = getArea():Area
