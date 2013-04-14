@@ -1,41 +1,44 @@
-Java Interfaces
-===============
+Diagram Fragments 
+=================
+
+## GameController
+* s = take(i: String, id: String):String
+* s = put(i: String, id: String):String
+* s = use(i: String, id: String):String
+* s = die(i: String, id: String):String
+* s = attack(i: String, id: String):String
 
 ## Game
-* s = look(d: String):String
-* s = move(d: String):String
-* s = examine(i: String):String
-* s = talk(n: String):String
-* s = eat(i: String):String
- 
+* s = take(i: String, id: String):String
+* s = put(i: String, id: String):String
+* s = use(i: String, id: String):String
+* s = die(i: String, id: String):String
+* s = attack(i: String, id: String):String
+
 ## Player
-*  getAllItems():List
-* public Player getPlayer(String id);
-* a = getDirection(d: String):Area
-* a = getCurrentArea():Area
-* s = setArea(a: Area):Boolean
-* i = getItem(name: String):Item
-* s = eatItem(name: String):String
- 
-## Character
-* l = getCharacter(name: String):List
-* s = talk():String
- 
-## DataStore
-* a = getArea(id: String):Area
-* p = getPlayer(id: String):Player
-* i = getItem(name: Player):Item
-* l = getCharacters(name: String):List
- 
-## Area
-* s = getDescription():String
-* l = getAllItems():List
-* a = getDirection(d: String):Area
-* c = getCharacter(name: String):Character
-* s = look(d: String):String
-* s = talkTo(n: String):String
- 
+* ca = getArea():Area
+* s = addItem(i: Item):String
+* i = getItem(n: String):Item
+* i = takeItem(n: String):Item
+* s = useItem(n: String):String
+
 ## Item
-* s = getDescription():String
-* l = getItems():List
-* s = eatItem():String
+* s = use():String
+
+## Area
+* i = takeItem(n: String):Item
+* s = putItem(i: Item):String
+* s = attack(n: String, i: Item):String
+
+## Character
+* s = attack(i: Item):String
+
+## DataStore
+* ca = getArea(id: String):Area
+* b = putArea(a: Area):Boolean
+* p = getPlayer(id: String):Player
+* b = putPlayer(p: Player):Boolean
+* b = removePlayer(id: String):Boolean
+* i = getItemByName(n: String):Item
+* c = getCharacterByName(n: String):Character
+* b = putCharacter(c: Character):Boolean
