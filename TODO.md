@@ -21,3 +21,17 @@ TODO
 
 ### Todo
 * *None yet*
+
+## Iteration 2
+
+## Todo
+* Put (Josh)
+* Use (Rob)
+* Attack (Josh)
+* Die (Rob)
+* Adhere to documentation better (Josh)
+* Print off
+
+## Done
+* Take (Rob)
+* Refactor massive models.py file (Rob)
