@@ -2,7 +2,6 @@ from google.appengine.ext import db
 from base import utils
 import logging
 
-
 class Game(object):
     command_list = [
         'look',
@@ -22,10 +21,10 @@ class Game(object):
             look [<direction>...]
 
         Options:
-            north		Room to the north
-            south		Room to the south
-            east		Room to the east
-            west		Room to the west
+            north       Room to the north
+            south       Room to the south
+            east        Room to the east
+            west        Room to the west
 
         EXAMPLE:
             look n s e w
@@ -34,7 +33,7 @@ class Game(object):
         NOTES:
             For convenience, the letters n, s, e, w can also be used.
         """
-
+        from base.models import DataStore
         player = DataStore().get_player(uid)
         cur_area = player.get_current_area()
 
@@ -57,10 +56,10 @@ class Game(object):
             move <direction>
 
         Options:
-            north		Room to the north
-            south		Room to the south
-            east		Room to the east
-            west		Room to the west
+            north       Room to the north
+            south       Room to the south
+            east        Room to the east
+            west        Room to the west
 
         EXAMPLE:
             move s
@@ -70,7 +69,7 @@ class Game(object):
         NOTES:
             For convenience, the letters n, s, e, w can also be used.
         """
-
+        from base.models import DataStore
         player = DataStore().get_player(uid)
         area = utils.check_map(player.get_current_area(), direction)
         if area is not None:
@@ -93,7 +92,7 @@ class Game(object):
             examine sock
                 Will print the description for the sock in the current room.
         """
-
+        from base.models import DataStore
         player = DataStore().get_player(uid)
         item = player.get_item(item_name)
         if item is not None:
@@ -114,7 +113,7 @@ class Game(object):
             talk uncle iroh
                 Will print what Uncle Iroh has to say.
         """
-
+        from base.models import DataStore
         player = DataStore().get_player(uid)
         area = player.get_current_area()
         if area is not None:
@@ -135,7 +134,7 @@ class Game(object):
             eat cupcake
                 Will consume the cupcake, mmmmmm.... cupcakes.
         """
-
+        from base.models import DataStore
         player = DataStore().get_player(uid)
         return player.eat_item(item_name)
 
@@ -153,6 +152,7 @@ class Game(object):
             take sock
                 Will add sock to your inventory.
         """
+        from base.models import DataStore
         player = DataStore().get_player(uid)
         cur_area = player.get_current_area()
         item = cur_area.take_item(item_name)
@@ -168,7 +168,7 @@ class Game(object):
         Now you are just testing the limits of my knowlege.
 
         """
-
+        from base.models import DataStore
         if command is not None and command in Game.command_list:
             help_str = object.__getattribute__(self, command).__doc__
             return utils.trim_docstring(help_str)
@@ -191,108 +191,3 @@ class Game(object):
             result.append(line)
 
         return '\n'.join(result)
-
-
-class Character(db.Model):
-    name = db.StringProperty()
-    script = db.StringProperty()
-
-    def talk(self):
-        return self.script
-
-    def get_name(self):
-        return self.name
-
-
-class Player(db.Model):
-    player_id = db.StringProperty()
-    inventory = db.StringListProperty()
-    current_area_name = db.StringProperty()
-
-    def get_item(self, item_name):
-        if item_name in inventory:
-            return DataStore().get_item_by_name(item_name)
-        return None
-
-    def add_item(self, item):
-        if item is not None:
-            self.inventory.append(item.get_name())
-            return item.get_description()
-        return "What item?"
-
-    def get_current_area(self):
-        return DataStore().get_area_by_name(self.current_area_name)
-
-    def set_area(self, area):
-        self.current_area_name = area.get_name()
-        return area.get_description()
-
-    def eat_item(self, item_name):
-        item = self.get_item(item_name)
-        return item.eat()
-
-
-class Area(db.Model):
-    description = db.StringProperty()
-    name = db.StringProperty()
-    characters = db.StringListProperty()
-    items = db.StringListProperty()
-
-    def get_name(self):
-        return self.name
-
-    def get_description(self):
-        return self.description
-
-    def talk_to(self, char_name):
-        if char_name in self.characters:
-            character = DataStore().get_character_by_name(char_name)
-            if character is not None:
-                return character.talk()
-        return 'Character DNE'
-
-    def take_item(self, item_name):
-        if item_name in self.items:
-            item = DataStore().get_item_by_name(item_name)
-            if item is not None:
-                self.items.remove(item_name)
-            return item
-        return None
-
-
-class Item(db.Model):
-    name = db.StringProperty()
-    description = db.StringProperty()
-
-    def get_description(self):
-        return self.description
-
-    def eat_item(self):
-        pass
-
-    def get_name(self):
-        return self.name
-
-
-class DataStore(object):
-    def get_item_by_name(self, item_name):
-        return Item.all().filter('name', item_name).get()
-
-    def get_character_by_name(self, name):
-        return Character.all().filter('name', name).get()
-
-    def get_area_by_name(self, name):
-        return Area.all().filter('name', name).get()
-
-    def put_player(self, player):
-        player.put()
-
-    def put_area(self,area):
-        area.put()
-
-    def get_player(self, uid):
-        player = Player.all().filter('player_id', uid).get()
-        if player is None:
-            player = Player(player_id = uid, inventory = [], current_area_name = 'start')
-            self.put_player(player)
-        return player
