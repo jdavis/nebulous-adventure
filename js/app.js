@@ -28,6 +28,14 @@
         $prompt.focus();
     });
 
+    var clearFunction = function() {
+        $console.html('');
+    };
+
+    var localCommands = {
+        'clear':clearFunction
+    };
+
     // Add a submit handler
     $('.prompt form').submit(function () {
         var $indicator = $('.prompt label'),
@@ -47,20 +55,28 @@
             }, 200);
 
         command($prompt.val());
-
-        $.ajax({
-            url: '/controller/',
-            type: 'POST',
-            data: JSON.stringify({'command': $prompt.val()}),
-            contentType: 'application/json',
-            dataType: 'json'
-        }).done(function(data){
-            if(data.hasOwnProperty("console")) {
-                reply(data.console);
-                requestFinished = true;
-            }
+        if ($prompt.val() in localCommands)
+        {
+            localCommands[$prompt.val()]();
+            requestFinished = true;
             resetPrompt();
-        });
+        }
+        else
+        {
+            $.ajax({
+                url: '/controller/',
+                type: 'POST',
+                data: JSON.stringify({'command': $prompt.val()}),
+                contentType: 'application/json',
+                dataType: 'json'
+            }).done(function(data){
+                if(data.hasOwnProperty("console")) {
+                    reply(data.console);
+                    requestFinished = true;
+                }
+                resetPrompt();
+            });
+        }
 
         return false;
     });
