@@ -11,6 +11,9 @@ class Game(object):
         'eat',
         'help',
         'take',
+        'use',
+        'inventory',
+        'die',
     ]
 
     def look(self, uid, direction=""):
@@ -136,7 +139,9 @@ class Game(object):
         """
         from base.models import DataStore
         player = DataStore().get_player(uid)
-        return player.eat_item(item_name)
+        reaction = player.eat_item(item_name)
+        DataStore().put_player(player)
+        return reaction
 
     def take(self, uid, item_name):
         """
@@ -162,6 +167,69 @@ class Game(object):
         DataStore().put_area(cur_area)
 
         return to_return
+
+    def use(self, uid, item_name):
+        """
+        Use the given item(s) that you requested.
+
+        Usage:
+            use [<item name>...]
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            use jetpack
+                You are now floating in the air.
+        """
+        from base.models import DataStore
+        player = DataStore().get_player(uid)
+        return player.use_item(item_name)
+
+
+    def inventory(self, uid):
+        """
+        Look into your inventory.
+
+        Usage:
+            look
+
+        Options:
+            None
+
+        EXAMPLE:
+            inventory
+                Sock
+                Sword
+                Trombone
+        """
+        from base.models import DataStore
+        player = DataStore().get_player(uid)
+        inventory = player.get_inventory()
+        if len(inventory):
+            return '\n'.join(inventory)
+        return 'Your inventory is empty...'
+
+
+    def die(self, uid):
+        """
+        Mysteriously become lifeless....
+
+        Usage:
+            die
+
+        Options:
+            None
+
+        EXAMPLE:
+            die
+                You are now dead...
+        """
+        from base.models import DataStore
+        player = DataStore().get_player(uid)
+        DataStore().delete_player(player)
+        return 'You are now dead...'
+
 
     def help(self, uid, command=None):
         """

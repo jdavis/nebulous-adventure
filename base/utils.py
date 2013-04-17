@@ -42,20 +42,22 @@ class GameData(object):
         'start' : {'connecting_areas':{'n':'dungeon', 's':'dungeon', 'e':'dungeon', 'w':'dungeon'},
                    'description':'You see that your room is messy and a cat rolling around in a pile of socks...',
                    'characters':['Cat'],
-                   'items':['Sock']},
+                   'items':['Sock', 'Sock', 'Sock', 'Sock']},
 
         'dungeon' : {'connecting_areas':{'n':'start', 's':'start', 'e':'start', 'w':'start'},
                    'description':'You see a dungeon... weird... why is that next to your room?',
                    'characters':[],
-                   'items':[]}
+                   'items':[]},
     }
 
     characters = {
-        'Cat':{'script':'Meow...'}
+        'Cat':{'script':'Meow...'},
     }
 
     items = {
-        'Sock':{'description': 'This is not any ordinary sock, it is a mysterious sock...'}
+        'Sock':{'description': 'This is not any ordinary sock, it is a mysterious sock...',
+                'use_reaction': 'The mysterious sock did nothing...',
+                'eat_reaction': 'Whelp you just ate a sock... I hope you are proud...'},
     }
 
 def check_map(area, direction):
@@ -95,7 +97,9 @@ def generate_test_data(erase_reset=True):
     print '\nItems'
     for key, item in GameData().items.iteritems():
         new_item = models.Item(name = key,
-                               description = item['description'])
+                               description = item['description'],
+                               use_reaction = item['use_reaction'],
+                               eat_reaction = item['eat_reaction'])
         print '********'
         print '  name: %s\n  description: %s'%(new_item.name, new_item.description)
         to_put.append(new_item)

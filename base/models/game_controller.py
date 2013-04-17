@@ -21,5 +21,14 @@ class GameController(object):
     def take(self, uid, item_name):
         return Game().take(uid,item_name)
 
+    def die(self, uid):
+        return Game().die(uid)
+
+    def use(self, uid, item_name):
+        return Game().use(uid, item_name)
+
+    def inventory(self, uid):
+        return Game().inventory(uid)
+
     def help(self, uid, command=None):
         return Game().help(uid,command)

@@ -21,6 +21,9 @@ action_map = {
     'talk': game.talk,
     'take': game.take,
     'help': game.help,
+    'use': game.use,
+    'inventory' : game.inventory,
+    'die': game.die,
 }
 
 
