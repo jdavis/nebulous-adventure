@@ -639,17 +639,18 @@ class Game(object):
 
     def attack(self, uid, name, item_name):
         """
-        Use the given item(s) that you requested.
+        Attack the given character with the given item
 
         Usage:
-            use [<item name>...]
+            use <character name> <item name>
 
         Options:
+            Any valid character in the area.
             Any valid item name in your inventory.
 
         EXAMPLE:
-            use jetpack
-                You are now floating in the air.
+            attack gollum
+                Gollum: My preciouss...
         """
         player = DataStore().get_player(uid)
         item = player.get_item(item_name)
