@@ -1,6 +1,5 @@
 from google.appengine.ext import db
 from google.appengine.api import memcache
-import logging
 
 
 class DataStore(object):
@@ -24,7 +23,7 @@ class DataStore(object):
         memcache.delete(player.player_id)
         db.delete(player)
 
-    def put_area(self,area):
+    def put_area(self, area):
         area.put()
 
     def get_player(self, uid):
@@ -35,7 +34,7 @@ class DataStore(object):
 
         player = Player.all().filter('player_id', uid).get()
         if player is None:
-            player = Player(player_id = uid, inventory = [], current_area_name = 'start')
+            player = Player(player_id=uid, inventory=[], current_area_name='start')
             self.put_player(player)
 
         memcache.add(uid, player)

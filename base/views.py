@@ -7,7 +7,6 @@ from flask import request, session
 from flask.views import MethodView
 from flask.templating import render_template
 
-
 from base.models import GameController
 
 # Game to Map to
@@ -22,7 +21,7 @@ action_map = {
     'take': game.take,
     'help': game.help,
     'use': game.use,
-    'inventory' : game.inventory,
+    'inventory': game.inventory,
     'die': game.die,
 }
 

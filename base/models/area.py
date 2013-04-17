@@ -1,5 +1,4 @@
 from google.appengine.ext import db
-import logging
 
 
 class Area(db.Model):
@@ -25,7 +24,7 @@ class Area(db.Model):
 
     def take_item(self, item_name):
         from base.models import DataStore
-        
+
         if item_name in self.items:
             item = DataStore().get_item_by_name(item_name)
             if item is not None:

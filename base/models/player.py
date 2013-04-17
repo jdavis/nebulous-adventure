@@ -1,6 +1,5 @@
 from google.appengine.ext import db
 
-import logging
 
 class Player(db.Model):
     player_id = db.StringProperty()

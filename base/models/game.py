@@ -1,6 +1,5 @@
-from google.appengine.ext import db
 from base import utils
-import logging
+
 
 class Game(object):
     command_list = [
@@ -186,7 +185,6 @@ class Game(object):
         player = DataStore().get_player(uid)
         return player.use_item(item_name)
 
-
     def inventory(self, uid):
         """
         Look into your inventory.
@@ -210,7 +208,6 @@ class Game(object):
             return '\n'.join(inventory)
         return 'Your inventory is empty...'
 
-
     def die(self, uid):
         """
         Mysteriously become lifeless....
@@ -229,7 +226,6 @@ class Game(object):
         player = DataStore().get_player(uid)
         DataStore().delete_player(player)
         return 'You are now dead...'
-
 
     def help(self, uid, command=None):
         """
