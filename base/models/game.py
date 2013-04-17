@@ -14,6 +14,7 @@ class Game(object):
         'talk',
         'use',
         'put',
+        'attack',
     ]
 
     def look(self, uid, direction=""):
@@ -230,6 +231,28 @@ class Game(object):
         if len(inventory):
             return '\n'.join(inventory)
         return 'Your inventory is empty...'
+
+    def attack(self, uid, name, item_name):
+        """
+        Use the given item(s) that you requested.
+
+        Usage:
+            use [<item name>...]
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            use jetpack
+                You are now floating in the air.
+        """
+        from base.models import DataStore
+
+        player = DataStore().get_player(uid)
+        item = player.get_item(item_name)
+        cur_area = player.get_current_area()
+
+        return cur_area.attack(name, item)
 
     def die(self, uid):
         """

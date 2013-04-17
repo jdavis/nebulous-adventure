@@ -13,6 +13,7 @@ from base.models import GameController
 game = GameController()
 
 action_map = {
+    'attack': game.attack,
     'die': game.die,
     'eat': game.eat,
     'examine': game.examine,
@@ -49,7 +50,7 @@ class GameView(MethodView):
         raw_command = json_request.get('command', '')
 
         # Split up the command and assign to appropriate variables
-        parts = raw_command.split()
+        parts = raw_command.lower().split()
 
         if len(parts) == 0:
             return json.dumps({'console': 'I can\'t hear you, say it louder'})

@@ -41,8 +41,8 @@ class GameData(object):
     world_map = {
         'start' : {'connecting_areas':{'n':'dungeon', 's':'dungeon', 'e':'dungeon', 'w':'dungeon'},
                    'description':'You see that your room is messy and a cat rolling around in a pile of socks...',
-                   'characters':['Cat'],
-                   'items':['Sock', 'Sock', 'Sock', 'Sock']},
+                   'characters':['cat'],
+                   'items':['sock', 'sock', 'sock', 'sock']},
 
         'dungeon' : {'connecting_areas':{'n':'start', 's':'start', 'e':'start', 'w':'start'},
                    'description':'You see a dungeon... weird... why is that next to your room?',
@@ -51,11 +51,11 @@ class GameData(object):
     }
 
     characters = {
-        'Cat':{'script':'Meow...'},
+        'cat':{'script':'Meow...'},
     }
 
     items = {
-        'Sock':{'description': 'This is not any ordinary sock, it is a mysterious sock...',
+        'sock':{'description': 'This is not any ordinary sock, it is a mysterious sock...',
                 'use_reaction': 'The mysterious sock did nothing...',
                 'eat_reaction': 'Whelp you just ate a sock... I hope you are proud...'},
     }

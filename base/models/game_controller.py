@@ -3,6 +3,9 @@ from base.models import Game
 
 class GameController(object):
 
+    def attack(self, uid, name, item_name):
+        return Game().attack(uid, name, item_name)
+
     def look(self, uid, direction=""):
         return Game().look(uid, direction)
 

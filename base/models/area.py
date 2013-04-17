@@ -22,6 +22,15 @@ class Area(db.Model):
                 return character.talk()
         return 'Character DNE'
 
+    def attack(self, char_name, item):
+        from base.models import DataStore
+
+        if char_name in self.characters:
+            character = DataStore().get_character_by_name(char_name)
+            if character is not None:
+                return character.attack(item)
+        return 'Character DNE'
+
     def take_item(self, item_name):
         from base.models import DataStore
 
