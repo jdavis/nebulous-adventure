@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-import logging
+
 
 class Item(db.Model):
     name = db.StringProperty()

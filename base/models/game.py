@@ -1,19 +1,22 @@
-from google.appengine.ext import db
+from .datastore import DataStore
+
 from base import utils
-import logging
+
 
 class Game(object):
     command_list = [
+        'die',
+        'eat',
+        'examine',
+        'help',
+        'inventory',
         'look',
         'move',
-        'examine',
-        'talk',
-        'eat',
-        'help',
         'take',
+        'talk',
         'use',
-        'inventory',
-        'die',
+        'put',
+        'attack',
     ]
 
     def look(self, uid, direction=""):
@@ -36,7 +39,6 @@ class Game(object):
         NOTES:
             For convenience, the letters n, s, e, w can also be used.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         cur_area = player.get_current_area()
 
@@ -72,7 +74,6 @@ class Game(object):
         NOTES:
             For convenience, the letters n, s, e, w can also be used.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         area = utils.check_map(player.get_current_area(), direction)
         if area is not None:
@@ -95,7 +96,6 @@ class Game(object):
             examine sock
                 Will print the description for the sock in the current room.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         item = player.get_item(item_name)
         if item is not None:
@@ -116,7 +116,6 @@ class Game(object):
             talk uncle iroh
                 Will print what Uncle Iroh has to say.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         area = player.get_current_area()
         if area is not None:
@@ -137,7 +136,6 @@ class Game(object):
             eat cupcake
                 Will consume the cupcake, mmmmmm.... cupcakes.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         reaction = player.eat_item(item_name)
         DataStore().put_player(player)
@@ -157,7 +155,6 @@ class Game(object):
             take sock
                 Will add sock to your inventory.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         cur_area = player.get_current_area()
         item = cur_area.take_item(item_name)
@@ -167,6 +164,26 @@ class Game(object):
         DataStore().put_area(cur_area)
 
         return to_return
+
+    def put(self, uid, item_name):
+        """
+        Put the given item down in the current area.
+
+        Usage:
+            put <item name>
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            put kitten
+                You put the kitten down.
+        """
+        player = DataStore().get_player(uid)
+        cur_area = player.get_current_area()
+        item = player.take_item(item_name)
+
+        return cur_area.add_item(item)
 
     def use(self, uid, item_name):
         """
@@ -182,10 +199,8 @@ class Game(object):
             use jetpack
                 You are now floating in the air.
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         return player.use_item(item_name)
-
 
     def inventory(self, uid):
         """
@@ -203,13 +218,31 @@ class Game(object):
                 Sword
                 Trombone
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         inventory = player.get_inventory()
         if len(inventory):
             return '\n'.join(inventory)
         return 'Your inventory is empty...'
 
+    def attack(self, uid, name, item_name):
+        """
+        Use the given item(s) that you requested.
+
+        Usage:
+            use [<item name>...]
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            use jetpack
+                You are now floating in the air.
+        """
+        player = DataStore().get_player(uid)
+        item = player.get_item(item_name)
+        cur_area = player.get_current_area()
+
+        return cur_area.attack(name, item)
 
     def die(self, uid):
         """
@@ -225,18 +258,15 @@ class Game(object):
             die
                 You are now dead...
         """
-        from base.models import DataStore
         player = DataStore().get_player(uid)
         DataStore().delete_player(player)
         return 'You are now dead...'
-
 
     def help(self, uid, command=None):
         """
         Now you are just testing the limits of my knowlege.
 
         """
-        from base.models import DataStore
         if command is not None and command in Game.command_list:
             help_str = object.__getattribute__(self, command).__doc__
             return utils.trim_docstring(help_str)

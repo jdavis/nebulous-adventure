@@ -7,23 +7,24 @@ from flask import request, session
 from flask.views import MethodView
 from flask.templating import render_template
 
-
 from base.models import GameController
 
 # Game to Map to
 game = GameController()
 
 action_map = {
+    'attack': game.attack,
+    'die': game.die,
     'eat': game.eat,
     'examine': game.examine,
+    'help': game.help,
+    'inventory': game.inventory,
     'look': game.look,
     'move': game.move,
-    'talk': game.talk,
+    'put': game.put,
     'take': game.take,
-    'help': game.help,
+    'talk': game.talk,
     'use': game.use,
-    'inventory' : game.inventory,
-    'die': game.die,
 }
 
 
@@ -49,7 +50,7 @@ class GameView(MethodView):
         raw_command = json_request.get('command', '')
 
         # Split up the command and assign to appropriate variables
-        parts = raw_command.split()
+        parts = raw_command.lower().split()
 
         if len(parts) == 0:
             return json.dumps({'console': 'I can\'t hear you, say it louder'})

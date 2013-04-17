@@ -16,22 +16,13 @@ TODO
 
 ## Iteration 2
 
-### Done
-* *None yet*
-
-### Todo
-* *None yet*
-
-## Iteration 2
-
 ## Todo
-* Put (Josh)
-* Use (Rob)
-* Attack (Josh)
-* Die (Rob)
-* Adhere to documentation better (Josh)
 * Print off
 
 ## Done
+* Attack (Josh)
 * Take (Rob)
+* Put (Josh)
 * Refactor massive models.py file (Rob)
+* Die (Rob)
+* Use (Rob)
