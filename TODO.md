@@ -17,11 +17,10 @@ TODO
 ## Iteration 2
 
 ## Todo
-* Attack (Josh)
-* Adhere to documentation better (Josh)
 * Print off
 
 ## Done
+* Attack (Josh)
 * Take (Rob)
 * Put (Josh)
 * Refactor massive models.py file (Rob)
