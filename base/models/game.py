@@ -3,16 +3,17 @@ from base import utils
 
 class Game(object):
     command_list = [
+        'die',
+        'eat',
+        'examine',
+        'help',
+        'inventory',
         'look',
         'move',
-        'examine',
-        'talk',
-        'eat',
-        'help',
         'take',
+        'talk',
         'use',
-        'inventory',
-        'die',
+        'put',
     ]
 
     def look(self, uid, direction=""):
@@ -166,6 +167,28 @@ class Game(object):
         DataStore().put_area(cur_area)
 
         return to_return
+
+    def put(self, uid, item_name):
+        """
+        Put the given item down in the current area.
+
+        Usage:
+            put <item name>
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            put kitten
+                You put the kitten down.
+        """
+        from base.models import DataStore
+
+        player = DataStore().get_player(uid)
+        cur_area = player.get_current_area()
+        item = player.take_item(item_name)
+
+        return cur_area.add_item(item)
 
     def use(self, uid, item_name):
         """

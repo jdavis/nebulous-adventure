@@ -13,16 +13,17 @@ from base.models import GameController
 game = GameController()
 
 action_map = {
+    'die': game.die,
     'eat': game.eat,
     'examine': game.examine,
+    'help': game.help,
+    'inventory': game.inventory,
     'look': game.look,
     'move': game.move,
-    'talk': game.talk,
+    'put': game.put,
     'take': game.take,
-    'help': game.help,
+    'talk': game.talk,
     'use': game.use,
-    'inventory': game.inventory,
-    'die': game.die,
 }
 
 

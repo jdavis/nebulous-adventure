@@ -21,6 +21,9 @@ class GameController(object):
     def take(self, uid, item_name):
         return Game().take(uid, item_name)
 
+    def put(self, uid, item_name):
+        return Game().put(uid, item_name)
+
     def die(self, uid):
         return Game().die(uid)
 

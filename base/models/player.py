@@ -41,3 +41,10 @@ class Player(db.Model):
             self.inventory.remove(item_name)
             return item.eat()
         return "Item DNE"
+
+    def take_item(self, item_name):
+        item = self.get_item(item_name)
+        if item is not None:
+            self.inventory.remove(item_name)
+            return item
+        return None

@@ -31,3 +31,9 @@ class Area(db.Model):
                 self.items.remove(item_name)
             return item
         return None
+
+    def add_item(self, item):
+        if item is not None:
+            self.items.append(item)
+            return 'You put the {0} down.'.format(item.get_name())
+        return 'What item?'
