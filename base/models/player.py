@@ -1,3 +1,5 @@
+from .datastore import DataStore
+
 from google.appengine.ext import db
 
 
@@ -10,7 +12,6 @@ class Player(db.Model):
         return self.inventory
 
     def get_item(self, item_name):
-        from base.models import DataStore
         if item_name in self.inventory:
             return DataStore().get_item_by_name(item_name)
         return None
@@ -22,7 +23,6 @@ class Player(db.Model):
         return "What item?"
 
     def get_current_area(self):
-        from base.models import DataStore
         return DataStore().get_area_by_name(self.current_area_name)
 
     def set_area(self, area):

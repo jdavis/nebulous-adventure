@@ -1,3 +1,5 @@
+from .datastore import DataStore
+
 from google.appengine.ext import db
 
 
@@ -14,8 +16,6 @@ class Area(db.Model):
         return self.description
 
     def talk_to(self, char_name):
-        from base.models import DataStore
-
         if char_name in self.characters:
             character = DataStore().get_character_by_name(char_name)
             if character is not None:
@@ -23,8 +23,6 @@ class Area(db.Model):
         return 'Character DNE'
 
     def attack(self, char_name, item):
-        from base.models import DataStore
-
         if char_name in self.characters:
             character = DataStore().get_character_by_name(char_name)
             if character is not None:
@@ -32,8 +30,6 @@ class Area(db.Model):
         return 'Character DNE'
 
     def take_item(self, item_name):
-        from base.models import DataStore
-
         if item_name in self.items:
             item = DataStore().get_item_by_name(item_name)
             if item is not None:
