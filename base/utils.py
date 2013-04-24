@@ -71,6 +71,7 @@ def check_map(area, direction):
 
 def generate_test_data(erase_reset=True):
     from google.appengine.ext import db
+    from google.appengine.ext import ndb
     from base import models
     print 'Generating Game Data...'
     if erase_reset:
@@ -79,8 +80,10 @@ def generate_test_data(erase_reset=True):
         to_delete.extend(models.Character.all(keys_only=True).fetch(None))
         to_delete.extend(models.Item.all(keys_only=True).fetch(None))
         to_delete.extend(models.Area.all(keys_only=True).fetch(None))
-        to_delete.extend(models.Player.all(keys_only=True).fetch(None))
+        # to_delete.extend(models.Player.all(keys_only=True).fetch(None))
+        # to_delete.extend()
         db.delete(to_delete)
+        ndb.delete_multi(models.Player.query().fetch(None, options = ndb.QueryOptions(keys_only=True)))
         print '\n(Deleted old data...)\n'
 
     to_put = []

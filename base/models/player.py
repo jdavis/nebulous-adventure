@@ -1,12 +1,14 @@
 from .datastore import DataStore
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 
-class Player(db.Model):
-    player_id = db.StringProperty()
-    inventory = db.StringListProperty()
-    current_area_name = db.StringProperty()
+class Player(ndb.Model):
+
+
+    player_id = ndb.StringProperty()
+    inventory = ndb.JsonProperty()
+    current_area_name = ndb.StringProperty()
 
     def get_inventory(self):
         return self.inventory
