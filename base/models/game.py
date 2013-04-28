@@ -265,8 +265,17 @@ class Game(object):
 
     def help(self, uid, command=None):
         """
-        Now you are just testing the limits of my knowledge.
+        Show the help for a given command.
 
+        Usage:
+            help <command>
+
+        Options:
+            A valid game command.
+
+        EXAMPLE:
+            help help
+                [Prints this message]
         """
         if command is not None and command in Game.command_list:
             help_str = object.__getattribute__(self, command).__doc__
