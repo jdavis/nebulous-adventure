@@ -294,7 +294,7 @@ class Game(object):
 
             # We only want the description
             line = '\t{command}{desc}'.format(command=cmd.lstrip().ljust(10),
-                                                desc=help_str.split('\n')[1])
+                                              desc=help_str.split('\n')[1])
 
             result.append(line)
 
