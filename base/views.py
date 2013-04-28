@@ -70,6 +70,6 @@ class GameView(MethodView):
             except TypeError, e:
                 logging.error('Got error {0}'.format(e))
                 logging.info('Not enough arguments given for command {0}'.format(command))
-                result = 'Not enough arguments given.'
+                result = 'Invalid arguments given for the command.'
 
         return json.dumps({'console': result})
