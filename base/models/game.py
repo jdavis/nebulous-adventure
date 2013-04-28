@@ -24,7 +24,7 @@ class Game(object):
         Look around at the room you are in.
 
         Usage:
-            look [<direction>...]
+            look <direction>
 
         Options:
             north       Room to the north
@@ -84,10 +84,10 @@ class Game(object):
 
     def examine(self, uid, item_name):
         """
-        Examine a given item(s) in your inventory or the room.
+        Examine a given item in your inventory or the room.
 
         Usage:
-            examine [<item name>...]
+            examine <item name>
 
         Options:
             Any valid item(s) name.
@@ -124,10 +124,10 @@ class Game(object):
 
     def eat(self, uid, item_name):
         """
-        Eat the given item(s) that you requested.
+        Eat the given item that you requested.
 
         Usage:
-            eat [<item name>...]
+            eat <item name>
 
         Options:
             Any valid item name in the room or your inventory.
@@ -187,10 +187,10 @@ class Game(object):
 
     def use(self, uid, item_name):
         """
-        Use the given item(s) that you requested.
+        Use the given item that you requested.
 
         Usage:
-            use [<item name>...]
+            use <item name>
 
         Options:
             Any valid item name in your inventory.
@@ -265,7 +265,7 @@ class Game(object):
 
     def help(self, uid, command=None):
         """
-        Now you are just testing the limits of my knowlege.
+        Now you are just testing the limits of my knowledge.
 
         """
         if command is not None and command in Game.command_list:
