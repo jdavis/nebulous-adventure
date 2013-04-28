@@ -284,7 +284,7 @@ class Game(object):
             help_str = object.__getattribute__(self, cmd).__doc__
 
             # We only want the description
-            line = '\t{command}\t\t{desc}'.format(command=cmd.lstrip(),
+            line = '\t{command}{desc}'.format(command=cmd.lstrip().ljust(10),
                                                 desc=help_str.split('\n')[1])
 
             result.append(line)
