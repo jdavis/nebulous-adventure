@@ -24,6 +24,7 @@ class Game(object):
 
     def status(self):
         new = """
+        Welcome to The Nebulous Adventure.
 
         You look confused. Don't worry, everyone in The Nebulous Adventure is confused.
 
@@ -36,6 +37,8 @@ class Game(object):
         """
 
         returning = """
+        Welcome back to The Nebulous Adventure.
+
         It looks like you have been here before. We started you off where you were before.
 
         If you want to start a new game, use the `start` command.
@@ -61,7 +64,7 @@ class Game(object):
                 prompt = """
                 It looks like you already have a player.
 
-                Are you sure you'd like to start over? If so, just type `start new`.
+                Are you sure you'd like to start over? If so, run `start new`.
 
                 """
                 return utils.trim_docstring(prompt)

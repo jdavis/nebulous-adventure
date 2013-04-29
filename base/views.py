@@ -63,4 +63,11 @@ class GameView(MethodView):
             logging.info('Calling {0} with args: {1}'.format(command, ','.join(args)))
             result = action(*args)
 
-        return json.dumps({'console': result})
+        if type(result) == str or type(result) == unicode:
+            payload = {
+                'console': result,
+            }
+        else:
+            payload = result
+
+        return json.dumps(payload)
