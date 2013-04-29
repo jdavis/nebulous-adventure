@@ -7,10 +7,50 @@
     var $console = $('.console div.content'),
         $scroll = $('.console'),
         $prompt = $('#prompt'),
-        command = function (text) {
-            $('<pre>')
-                .text('> ' + text)
-                .appendTo($console);
+        command = function (text, hide) {
+            var $indicator = $('.prompt label'),
+                chars = '|/-\\',
+                index = 0,
+                requestFinished = false,
+                time = 0,
+                loader = setInterval(function () {
+                    $indicator.text(chars[index]);
+
+                    index = (index + 1) % chars.length;
+
+                    if (requestFinished === true) {
+                        $indicator.html('&gt;');
+                        clearInterval(loader);
+                    }
+                }, 200);
+
+            if (!hide) {
+                $('<pre>')
+                    .text('> ' + text)
+                    .appendTo($console);
+            }
+
+            if ($prompt.val() in localCommands) {
+                localCommands[text]();
+                requestFinished = true;
+                resetPrompt();
+            } else {
+                $.ajax({
+                    url: '/controller/',
+                    type: 'POST',
+                    data: JSON.stringify({'command': text}),
+                    contentType: 'application/json',
+                    dataType: 'json'
+                }).done(function(data){
+                    if(data.hasOwnProperty('console')) {
+                        reply(data.console);
+                        requestFinished = true;
+                    }
+                    resetPrompt();
+                });
+            }
+
+            return false;
         },
         reply = function (text) {
             $('<pre>')
@@ -31,66 +71,17 @@
     // Focus prompt on load
     $(document).ready(function () {
         $prompt.focus();
+        command('status', true);
     });
 
     // Add a submit handler
     $('.prompt form').submit(function () {
-        var $indicator = $('.prompt label'),
-            chars = '|/-\\',
-            index = 0,
-            requestFinished = false,
-            time = 0,
-            loader = setInterval(function () {
-                $indicator.text(chars[index]);
-
-                index = (index + 1) % chars.length;
-
-                if (requestFinished === true) {
-                    $indicator.html('&gt;');
-                    clearInterval(loader);
-                }
-            }, 200);
-
         command($prompt.val());
-
-        if ($prompt.val() in localCommands) {
-            localCommands[$prompt.val()]();
-            requestFinished = true;
-            resetPrompt();
-        } else {
-            $.ajax({
-                url: '/controller/',
-                type: 'POST',
-                data: JSON.stringify({'command': $prompt.val()}),
-                contentType: 'application/json',
-                dataType: 'json'
-            }).done(function(data){
-                if(data.hasOwnProperty("console")) {
-                    reply(data.console);
-                    requestFinished = true;
-                }
-                resetPrompt();
-            });
-        }
-
         return false;
     });
 
     // Show help
     $('.prompt a').on('click', function () {
         command('help');
-
-        $.ajax({
-            url: '/controller/',
-            type: 'POST',
-            data: JSON.stringify({'command': 'help'}),
-            contentType: 'application/json',
-            dataType: 'json'
-        }).done(function(data){
-            if(data.hasOwnProperty("console")) {
-                reply(data.console);
-            }
-            resetPrompt();
-        });
     });
 }(window, jQuery));
