@@ -13,17 +13,14 @@ from base.game_controller import GameController
 class HomeView(MethodView):
     def get(self):
         if 'uid' not in session:
-            session['uid'] = os.urandom(24)
+            session['uid'] = os.urandom(24).encode('hex')
 
         return render_template('base.html')
 
 
 class GameView(MethodView):
     def post(self):
-        if 'uid' not in session:
-            session['uid'] = os.urandom(24)
-
-        uid = session['uid'].encode('hex')
+        uid = session['uid']
 
         # Game to Map to
         game = GameController(uid)
