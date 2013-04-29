@@ -41,3 +41,9 @@ class GameController(object):
 
     def help(self, command=None):
         return Game(self.uid).help(command)
+
+    def status(self):
+        return Game(self.uid).status()
+
+    def start(self, *args):
+        return Game(self.uid).start(*args)

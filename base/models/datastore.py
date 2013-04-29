@@ -105,12 +105,15 @@ class DataStore(object):
         from base.models import Player
 
         player = Player.all().filter('player_id', self.uid).get()
-        if player is None:
-            logging.info('No player exists for player_id, creating new one')
-            player = Player(player_id=self.uid)
-            self.put_player(player)
-
         self.player = player
+
+        return player
+
+    def create_player(self):
+        from base.models import Player
+
+        player = Player(player_id=self.uid)
+        self.put_player(player)
 
         return player
 

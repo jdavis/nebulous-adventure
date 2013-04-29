@@ -1,5 +1,3 @@
-import logging
-
 from base import utils
 from base.models import datastore
 
@@ -21,7 +19,63 @@ class Game(object):
     ]
 
     def __init__(self, uid):
+        self.uid = uid
         datastore.uid = uid
+
+    def status(self):
+        new = """
+
+        You look confused. Don't worry, everyone in The Nebulous Adventure is confused.
+
+        If this is your first time playing, check out the `help` command.
+
+        Once you have a feel for the game, go ahead and start a new game with the `start` command.
+
+        If you are a returning player, run the `resume` command with your given password. Or go to the URL that you were supplied.
+
+        """
+
+        returning = """
+        It looks like you have been here before. We started you off where you were before.
+
+        If you want to start a new game, use the `start` command.
+
+        If you would like to resume another game, run the `resume` command with your given password. Or go to the URL that you were supplied.
+
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return utils.trim_docstring(new)
+        else:
+            return utils.trim_docstring(returning)
+
+    def start(self, *args):
+        force = True if len(args) > 0 and args[0] == 'new' else False
+
+        player = datastore.get_player()
+
+        if force is False:
+            if player is not None:
+                prompt = """
+                It looks like you already have a player.
+
+                Are you sure you'd like to start over? If so, just type `start new`.
+
+                """
+                return utils.trim_docstring(prompt)
+
+        player = datastore.create_player()
+
+        welcome = """
+        You open your eyes. You're on the ground. You stand up and brush yourself off.
+
+        "Where am I?" you wonder. "This place sure looks nebulous," your mind says.
+
+        """
+
+        return utils.trim_docstring(welcome)
 
     def look(self, direction=""):
         """
@@ -52,6 +106,10 @@ class Game(object):
         ]
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         current_area = player.get_current_area()
 
         if direction == "":
@@ -90,6 +148,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         current_area = player.get_current_area()
 
         next_area = current_area.get_neighbor(direction)
@@ -117,6 +179,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         item = player.get_item(item_name)
 
         if item is None:
@@ -140,6 +206,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         current_area = player.get_current_area()
 
         if current_area is None:
@@ -164,6 +234,9 @@ class Game(object):
 
         player = datastore.get_player()
 
+        if player is None:
+            return self.status()
+
         reaction = player.eat_item(item_name)
         datastore.put_player(player)
 
@@ -185,6 +258,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         current_area = player.get_current_area()
 
         item = current_area.take_item(item_name)
@@ -214,6 +291,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         current_area = player.get_current_area()
 
         item = player.take_item(item_name)
@@ -241,6 +322,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         return player.use_item(item_name)
 
     def inventory(self):
@@ -261,6 +346,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         inventory = player.inventory()
 
         if inventory.count() == 0:
@@ -285,6 +374,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         item = player.get_item(item_name)
         current_area = player.get_current_area()
 
@@ -309,6 +402,10 @@ class Game(object):
         """
 
         player = datastore.get_player()
+
+        if player is None:
+            return self.status()
+
         datastore.delete_player(player)
 
         return 'You are now dead...'
@@ -343,9 +440,10 @@ class Game(object):
 
             help_str = object.__getattribute__(self, cmd).__doc__
 
+            link_cmd = '`{0}`'.format(cmd.lstrip())
             # We only want the description
-            line = '\t{command}{desc}'.format(command=cmd.lstrip().ljust(10),
-                                              desc=help_str.split('\n')[1])
+            line = '\t{cmd}{desc}'.format(cmd=link_cmd.ljust(12),
+                                          desc=help_str.split('\n')[1])
 
             result.append(line)
 

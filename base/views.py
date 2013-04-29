@@ -35,6 +35,8 @@ class GameView(MethodView):
             'look': game.look,
             'move': game.move,
             'put': game.put,
+            'start': game.start,
+            'status': game.status,
             'take': game.take,
             'talk': game.talk,
             'use': game.use,
