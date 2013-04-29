@@ -1,6 +1,7 @@
-from .datastore import DataStore
+import logging
 
 from base import utils
+from base.models import datastore
 
 
 class Game(object):
@@ -19,7 +20,10 @@ class Game(object):
         'attack',
     ]
 
-    def look(self, uid, direction=""):
+    def __init__(self, uid):
+        datastore.uid = uid
+
+    def look(self, direction=""):
         """
         Look around at the room you are in.
 
@@ -39,21 +43,31 @@ class Game(object):
         NOTES:
             For convenience, the letters n, s, e, w can also be used.
         """
-        player = DataStore().get_player(uid)
-        cur_area = player.get_current_area()
 
-        if cur_area is None:
-            return 'It looks like there isn\'t any game data'
+        directions = [
+            'n', 'north',
+            'e', 'east',
+            's', 'south',
+            'w', 'west'
+        ]
+
+        player = datastore.get_player()
+        current_area = player.get_current_area()
 
         if direction == "":
-            return cur_area.get_description()
+            return current_area.description
 
-        area = utils.check_map(cur_area, direction)
-        if area is not None:
-            return area.get_description()
-        return 'Nothing over there...'
+        if direction not in directions:
+            return 'Invalid direction'
 
-    def move(self, uid, direction):
+        neighbor = current_area.get_neighbor(direction)
+
+        if neighbor is None:
+            return 'There\'s nothing over there!'
+
+        return neighbor.description
+
+    def move(self, direction):
         """
         Move to a given location.
 
@@ -74,15 +88,20 @@ class Game(object):
         NOTES:
             For convenience, the letters n, s, e, w can also be used.
         """
-        player = DataStore().get_player(uid)
-        area = utils.check_map(player.get_current_area(), direction)
-        if area is not None:
-            to_return = player.set_area(area)
-            DataStore().put_player(player)
-            return to_return
-        return 'Ummmm I can not go over there...'
 
-    def examine(self, uid, item_name):
+        player = datastore.get_player()
+        current_area = player.get_current_area()
+
+        next_area = current_area.get_neighbor(direction)
+
+        if next_area is None:
+            return 'Ummmm I can not go over there...'
+
+        player.set_current_area(next_area)
+
+        return next_area.description
+
+    def examine(self, item_name):
         """
         Examine a given item in your inventory or the room.
 
@@ -96,13 +115,16 @@ class Game(object):
             examine sock
                 Will print the description for the sock in the current room.
         """
-        player = DataStore().get_player(uid)
-        item = player.get_item(item_name)
-        if item is not None:
-            return item.get_description()
-        return 'I do not have that item...'
 
-    def talk(self, uid, char_name):
+        player = datastore.get_player()
+        item = player.get_item(item_name)
+
+        if item is None:
+            return 'I do not have that item...'
+
+        return item.description
+
+    def talk(self, char_name):
         """
         Talk to an NPC that is in your current area.
 
@@ -113,16 +135,19 @@ class Game(object):
             Any valid NPC name.
 
         EXAMPLE:
-            talk uncle iroh
+            talk 'uncle iroh'
                 Will print what Uncle Iroh has to say.
         """
-        player = DataStore().get_player(uid)
-        area = player.get_current_area()
-        if area is not None:
-            return area.talk_to(char_name)
-        return 'There is no one by that name...'
 
-    def eat(self, uid, item_name):
+        player = datastore.get_player()
+        current_area = player.get_current_area()
+
+        if current_area is None:
+            return 'There is no one by that name...'
+
+        return current_area.talk_to(char_name)
+
+    def eat(self, item_name):
         """
         Eat the given item that you requested.
 
@@ -136,12 +161,15 @@ class Game(object):
             eat cupcake
                 Will consume the cupcake, mmmmmm.... cupcakes.
         """
-        player = DataStore().get_player(uid)
+
+        player = datastore.get_player()
+
         reaction = player.eat_item(item_name)
-        DataStore().put_player(player)
+        datastore.put_player(player)
+
         return reaction
 
-    def take(self, uid, item_name):
+    def take(self, item_name):
         """
         Take the given item that you requested.
 
@@ -155,17 +183,21 @@ class Game(object):
             take sock
                 Will add sock to your inventory.
         """
-        player = DataStore().get_player(uid)
-        cur_area = player.get_current_area()
-        item = cur_area.take_item(item_name)
-        to_return = player.add_item(item)
+        player = datastore.get_player()
+        current_area = player.get_current_area()
 
-        DataStore().put_player(player)
-        DataStore().put_area(cur_area)
+        item = current_area.take_item(item_name)
 
-        return to_return
+        if item is None:
+            return 'That item doesn\'t exist here.'
 
-    def put(self, uid, item_name):
+        player.add_item(item)
+
+        datastore.put_player(player)
+
+        return item.description
+
+    def put(self, item_name):
         """
         Put the given item down in the current area.
 
@@ -179,13 +211,20 @@ class Game(object):
             put kitten
                 You put the kitten down.
         """
-        player = DataStore().get_player(uid)
-        cur_area = player.get_current_area()
+
+        player = datastore.get_player()
+        current_area = player.get_current_area()
+
         item = player.take_item(item_name)
 
-        return cur_area.add_item(item)
+        if item is None:
+            return 'That item doesn\'t exist.'
 
-    def use(self, uid, item_name):
+        current_area.add_item(item)
+
+        return 'You place the {0} in the {1}.'.format(item.name, current_area.name)
+
+    def use(self, item_name):
         """
         Use the given item that you requested.
 
@@ -199,10 +238,11 @@ class Game(object):
             use jetpack
                 You are now floating in the air.
         """
-        player = DataStore().get_player(uid)
+
+        player = datastore.get_player()
         return player.use_item(item_name)
 
-    def inventory(self, uid):
+    def inventory(self):
         """
         Look into your inventory.
 
@@ -218,13 +258,16 @@ class Game(object):
                 Sword
                 Trombone
         """
-        player = DataStore().get_player(uid)
-        inventory = player.get_inventory()
-        if len(inventory):
-            return '\n'.join(inventory)
-        return 'Your inventory is empty...'
 
-    def attack(self, uid, name, item_name):
+        player = datastore.get_player()
+        inventory = player.inventory()
+
+        if inventory.count() == 0:
+            return 'Your inventory is empty.'
+
+        return '\n'.join(item.name.capitalize() for item in inventory)
+
+    def attack(self, character_name, item_name):
         """
         Attack the given character with the given item
 
@@ -239,13 +282,17 @@ class Game(object):
             attack gollum
                 Gollum: My preciouss...
         """
-        player = DataStore().get_player(uid)
+
+        player = datastore.get_player()
         item = player.get_item(item_name)
-        cur_area = player.get_current_area()
+        current_area = player.get_current_area()
 
-        return cur_area.attack(name, item)
+        if item is None:
+            return 'You don\'t have that item.'
 
-    def die(self, uid):
+        return current_area.attack(character_name, item)
+
+    def die(self):
         """
         Mysteriously become lifeless....
 
@@ -259,11 +306,13 @@ class Game(object):
             die
                 You are now dead...
         """
-        player = DataStore().get_player(uid)
-        DataStore().delete_player(player)
+
+        player = datastore.get_player()
+        datastore.delete_player(player)
+
         return 'You are now dead...'
 
-    def help(self, uid, command=None):
+    def help(self, command=None):
         """
         Show the help for a given command.
 

@@ -4,17 +4,19 @@ from google.appengine.ext import db
 class Item(db.Model):
     name = db.StringProperty()
     description = db.StringProperty()
+    available = db.BooleanProperty(default=True)
     eat_reaction = db.StringProperty()
     use_reaction = db.StringProperty()
 
-    def get_description(self):
-        return self.description
+    # Relational Attributes
+    owner = db.ReferenceProperty(collection_name='items')
 
-    def eat(self):
-        return self.eat_reaction
+    @classmethod
+    def new(cls, data):
+        item = cls(name=data['name'],
+                   description=data['description'],
+                   eat_reaction=data['eat_reaction'],
+                   use_reaction=data['use_reaction'])
+        item.put()
 
-    def use(self):
-        return self.use_reaction
-
-    def get_name(self):
-        return self.name
+        return item

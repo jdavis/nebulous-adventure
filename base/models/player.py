@@ -1,50 +1,64 @@
-from .datastore import DataStore
+import logging
+
+from .datastore import datastore
 
 from google.appengine.ext import db
 
 
 class Player(db.Model):
-    player_id = db.StringProperty()
-    inventory = db.StringListProperty()
-    current_area_name = db.StringProperty()
+    player_id = db.StringProperty(required=True)
+    private_id = db.StringProperty()
+    current_area = db.ReferenceProperty()
 
-    def get_inventory(self):
-        return self.inventory
+    def inventory(self):
+        return self.items.filter('available', True)
 
     def get_item(self, item_name):
-        if item_name in self.inventory:
-            return DataStore().get_item_by_name(item_name)
+        for item in self.items.filter('available', True):
+            if item.name == item_name:
+                return item
+
         return None
 
     def add_item(self, item):
-        if item is not None:
-            self.inventory.append(item.get_name())
-            return item.get_description()
-        return "What item?"
+        if item is None:
+            return
+
+        item.owner = self
+        item.put()
 
     def get_current_area(self):
-        return DataStore().get_area_by_name(self.current_area_name)
+        if self.current_area is None:
+            area = datastore.get_area_by_name()
+            self.set_current_area(area)
 
-    def set_area(self, area):
-        self.current_area_name = area.get_name()
-        return area.get_description()
+        return self.current_area
+
+    def set_current_area(self, area):
+        self.current_area = area
+        self.put()
 
     def use_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            return item.use()
-        return "Item DNE"
+
+        if item is None:
+            return 'You don\'t have that item in your inventory.'
+
+        return item.use_reaction
 
     def eat_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            self.inventory.remove(item_name)
-            return item.eat()
-        return "Item DNE"
+
+        if item is None:
+            return 'You don\'t have that item in your inventory.'
+
+        item.available = False
+        item.put()
+
+        return item.eat_reaction
 
     def take_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            self.inventory.remove(item_name)
-            return item
-        return None
+        item.delete()
+
+        return item

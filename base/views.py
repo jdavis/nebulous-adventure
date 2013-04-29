@@ -7,25 +7,7 @@ from flask import request, session
 from flask.views import MethodView
 from flask.templating import render_template
 
-from base.models import GameController
-
-# Game to Map to
-game = GameController()
-
-action_map = {
-    'attack': game.attack,
-    'die': game.die,
-    'eat': game.eat,
-    'examine': game.examine,
-    'help': game.help,
-    'inventory': game.inventory,
-    'look': game.look,
-    'move': game.move,
-    'put': game.put,
-    'take': game.take,
-    'talk': game.talk,
-    'use': game.use,
-}
+from base.game_controller import GameController
 
 
 class HomeView(MethodView):
@@ -37,14 +19,29 @@ class HomeView(MethodView):
 
 
 class GameView(MethodView):
-    def get(self):
-        return json.dumps(action_map.keys())
-
     def post(self):
         if 'uid' not in session:
             session['uid'] = os.urandom(24)
 
         uid = session['uid'].encode('hex')
+
+        # Game to Map to
+        game = GameController(uid)
+
+        action_map = {
+            'attack': game.attack,
+            'die': game.die,
+            'eat': game.eat,
+            'examine': game.examine,
+            'help': game.help,
+            'inventory': game.inventory,
+            'look': game.look,
+            'move': game.move,
+            'put': game.put,
+            'take': game.take,
+            'talk': game.talk,
+            'use': game.use,
+        }
 
         json_request = json.loads(request.data)
         raw_command = json_request.get('command', '')
@@ -65,11 +62,6 @@ class GameView(MethodView):
             result = 'That is an invalid command.'
         else:
             logging.info('Calling {0} with args: {1}'.format(command, ','.join(args)))
-            try:
-                result = action(uid, *args)
-            except TypeError, e:
-                logging.error('Got error {0}'.format(e))
-                logging.info('Not enough arguments given for command {0}'.format(command))
-                result = 'Invalid arguments given for the command.'
+            result = action(*args)
 
         return json.dumps({'console': result})

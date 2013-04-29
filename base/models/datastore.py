@@ -1,82 +1,117 @@
+import logging
+
+from base import world
+
 from google.appengine.ext import db
 from google.appengine.api import memcache
 
-import logging
 
 def mem_get(key_property):
     def wrapper(f):
         def get(*args, **kwargs):
-            model = memcache.get(args[1])
+            model = memcache.get(args[0])
             if model is not None:
                 return model
 
             model = f(*args, **kwargs)
 
             if hasattr(model, key_property):
-                memcache.set(getattr(model, key_property), 
+                memcache.set(getattr(model, key_property),
                              model)
 
             return model
         return get
     return wrapper
 
+
 def mem_put(key_property):
     def wrapper(f):
         def put(*args, **kwargs):
-            model = args[1]
+            model = args[0]
             if hasattr(model, key_property):
-                memcache.set(getattr(model, key_property), 
+                memcache.set(getattr(model, key_property),
                              model)
             return f(*args, **kwargs)
         return put
     return wrapper
 
+
 def mem_delete(key_property):
     def wrapper(f):
         def delete(*args, **kwargs):
-            model = args[1]
+            model = args[0]
             if hasattr(model, key_property):
                 memcache.delete(getattr(model, key_property))
             return f(*args, **kwargs)
         return delete
     return wrapper
 
+
 class DataStore(object):
 
-    @mem_get('name')
-    def get_item_by_name(self, item_name):
+    def __init__(self):
+        self.uid = ''
+        self.player = None
+
+    def get_item_by_name(self, name):
         from base.models import Item
-        return Item.all().filter('name', item_name).get()
 
-    @mem_get('name')
-    def get_character_by_name(self, name):
+        data = world.get_item(name)
+
+        if data is None:
+            return None
+
+        item = Item.new(data)
+
+        return item
+
+    def get_character_by_name(self, area, name):
         from base.models import Character
-        return Character.all().filter('name', name).get()
 
-    @mem_get('name')
-    def get_area_by_name(self, name):
+        data = world.get_character(name)
+
+        if data is None:
+            return None
+
+        character = Character.new(area, data)
+
+        return character
+
+    def get_area_by_name(self, name=None):
         from base.models import Area
-        return Area.all().filter('name', name).get()
 
-    @mem_put('player_id')
+        area = Area.all().filter('name', name).filter('player', self.player).get()
+
+        if area is None:
+            data = world.get_area(room_name=name)
+
+            if data is None:
+                return None
+
+            area = Area.new(self.player, data)
+
+        return area
+
     def put_player(self, player):
         player.put()
 
-    @mem_delete('player_id')
     def delete_player(self, player):
         db.delete(player)
 
-    @mem_put('name')
     def put_area(self, area):
         area.put()
 
-    @mem_get('player_id')
-    def get_player(self, uid):
+    def get_player(self):
         from base.models import Player
 
-        player = Player.all().filter('player_id', uid).get()
+        player = Player.all().filter('player_id', self.uid).get()
         if player is None:
-            player = Player(player_id=uid, inventory=[], current_area_name='start')
+            logging.info('No player exists for player_id, creating new one')
+            player = Player(player_id=self.uid)
             self.put_player(player)
 
+        self.player = player
+
         return player
+
+datastore = DataStore()
