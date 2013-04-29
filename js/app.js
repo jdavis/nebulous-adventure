@@ -4,7 +4,6 @@
 
 
 (function (root, $) {
-
     var $console = $('.console div.content'),
         $scroll = $('.console'),
         $prompt = $('#prompt'),
@@ -21,20 +20,18 @@
         resetPrompt = function () {
             $prompt.val('');
             $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
+        },
+        clearConsole = function () {
+            $console.html('');
+        },
+        localCommands = {
+            'clear': clearConsole,
         };
 
     // Focus prompt on load
     $(document).ready(function () {
         $prompt.focus();
     });
-
-    var clearFunction = function() {
-        $console.html('');
-    };
-
-    var localCommands = {
-        'clear':clearFunction
-    };
 
     // Add a submit handler
     $('.prompt form').submit(function () {
@@ -55,14 +52,12 @@
             }, 200);
 
         command($prompt.val());
-        if ($prompt.val() in localCommands)
-        {
+
+        if ($prompt.val() in localCommands) {
             localCommands[$prompt.val()]();
             requestFinished = true;
             resetPrompt();
-        }
-        else
-        {
+        } else {
             $.ajax({
                 url: '/controller/',
                 type: 'POST',
@@ -80,6 +75,7 @@
 
         return false;
     });
+
     // Show help
     $('.prompt a').on('click', function () {
         command('help');
