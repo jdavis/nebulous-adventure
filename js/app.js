@@ -24,15 +24,14 @@
                     }
                 }, 200),
                 parts = text.split(' '),
-                cmd = parts[0];
+                cmd = parts[0],
+                gameKey = $('body').data('gameKey');
 
             if (!hide) {
                 $('<pre>')
                     .text('> ' + text)
                     .appendTo($console);
             }
-
-            console.log('Command = ' + cmd);
 
             if (cmd in localCommands) {
                 var stop = localCommands[cmd]();
@@ -43,14 +42,22 @@
             $.ajax({
                 url: '/controller/',
                 type: 'POST',
-                data: JSON.stringify({'command': text}),
+                data: JSON.stringify({'command': text, 'gameKey': gameKey}),
                 contentType: 'application/json',
                 dataType: 'json'
             }).done(function(data){
-                if(data.hasOwnProperty('console')) {
+                if('console' in data) {
                     reply(data.console);
-                    requestFinished = true;
                 }
+                if ('callback' in data) {
+                    var cb = data['callback']['name'],
+                        args = data['callback']['args'];
+
+                    if (cb in callbacks) {
+                        callbacks[cb].apply(this, [].concat(args));
+                    }
+                }
+                requestFinished = true;
             });
         },
         reply = function (text) {
@@ -58,6 +65,14 @@
                 .text(text)
                 .appendTo($console);
             scrollConsole();
+        },
+        attachUnload = function () {
+            $(window).on('beforeunload', function () {
+                return 'Leaving Nebulous Adventure will cause you to lose all your unsaved progress.'
+            });
+        },
+        removeUnload = function() {
+            $(window).off('beforeunload');
         },
         scrollConsole = function () {
             $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
@@ -75,16 +90,21 @@
         },
         localCommands = {
             'clear': clearCommand,
+        },
+        gameKeyCallback = function (key) {
+            console.log('GameKeyCallback');
+            $('body').data('gameKey', key);
+            console.log('Key = ' + key);
+            attachUnload();
+        },
+        callbacks = {
+            'gameKey': gameKeyCallback,
         };
 
     // Focus prompt on load
     $(document).ready(function () {
         $prompt.focus();
         command('status', true);
-    });
-
-    $(window).on('beforeunload', function () {
-        return 'Leaving Nebulous Adventure will cause you to lose all your unsaved progress.'
     });
 
     // Add a submit handler
