@@ -22,7 +22,9 @@
                         $indicator.html('&gt;');
                         clearInterval(loader);
                     }
-                }, 200);
+                }, 200),
+                parts = text.split(' '),
+                cmd = parts[0];
 
             if (!hide) {
                 $('<pre>')
@@ -30,42 +32,49 @@
                     .appendTo($console);
             }
 
-            if ($prompt.val() in localCommands) {
-                localCommands[text]();
+            console.log('Command = ' + cmd);
+
+            if (cmd in localCommands) {
+                var stop = localCommands[cmd]();
                 requestFinished = true;
-                resetPrompt();
-            } else {
-                $.ajax({
-                    url: '/controller/',
-                    type: 'POST',
-                    data: JSON.stringify({'command': text}),
-                    contentType: 'application/json',
-                    dataType: 'json'
-                }).done(function(data){
-                    if(data.hasOwnProperty('console')) {
-                        reply(data.console);
-                        requestFinished = true;
-                    }
-                    resetPrompt();
-                });
+                if (stop) return;
             }
 
-            return false;
+            $.ajax({
+                url: '/controller/',
+                type: 'POST',
+                data: JSON.stringify({'command': text}),
+                contentType: 'application/json',
+                dataType: 'json'
+            }).done(function(data){
+                if(data.hasOwnProperty('console')) {
+                    reply(data.console);
+                    requestFinished = true;
+                }
+            });
         },
         reply = function (text) {
             $('<pre>')
                 .text(text)
                 .appendTo($console);
+            scrollConsole();
+        },
+        scrollConsole = function () {
+            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
         },
         resetPrompt = function () {
             $prompt.val('');
-            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
+            scrollConsole();
         },
-        clearConsole = function () {
+        clearCommand = function () {
             $console.html('');
+            return true;
+        },
+        startCommand = function () {
+            clearCommand();
         },
         localCommands = {
-            'clear': clearConsole,
+            'clear': clearCommand,
         };
 
     // Focus prompt on load
@@ -76,7 +85,9 @@
 
     // Add a submit handler
     $('.prompt form').submit(function () {
-        command($prompt.val());
+        var val = $prompt.val();
+        resetPrompt();
+        command(val);
         return false;
     });
 
