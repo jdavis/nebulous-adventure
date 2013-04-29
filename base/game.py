@@ -20,9 +20,10 @@ class Game(object):
         'attack',
     ]
 
-    def __init__(self, uid):
+    def __init__(self, uid, game_key=None):
         self.uid = uid
         datastore.uid = uid
+        datastore.temp_key = game_key
 
     def status(self):
         new = """

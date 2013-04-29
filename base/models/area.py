@@ -9,6 +9,7 @@ from google.appengine.ext import db
 class Area(db.Model):
     name = db.StringProperty(required=True)
     description = db.StringProperty(required=True)
+    temp_key = db.StringProperty()
 
     area_north = db.StringProperty()
     area_east = db.StringProperty()

@@ -51,6 +51,7 @@ class DataStore(object):
 
     def __init__(self):
         self.uid = ''
+        self.temp_key = None
         self.player = None
 
     def get_item_by_name(self, name):
@@ -61,7 +62,7 @@ class DataStore(object):
         if data is None:
             return None
 
-        item = Item.new(data)
+        item = Item.new(data, temp_key=self.temp_key)
 
         return item
 
@@ -73,7 +74,7 @@ class DataStore(object):
         if data is None:
             return None
 
-        character = Character.new(area, data)
+        character = Character.new(area, data, temp_key=self.temp_key)
 
         return character
 
@@ -88,7 +89,7 @@ class DataStore(object):
             if data is None:
                 return None
 
-            area = Area.new(self.player, data)
+            area = Area.new(self.player, data, temp_key=self.temp_key)
 
         return area
 
