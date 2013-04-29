@@ -183,6 +183,7 @@ class Game(object):
             take sock
                 Will add sock to your inventory.
         """
+
         player = datastore.get_player()
         current_area = player.get_current_area()
 
@@ -326,6 +327,7 @@ class Game(object):
             help help
                 [Prints this message]
         """
+
         if command is not None and command in Game.command_list:
             help_str = object.__getattribute__(self, command).__doc__
             return utils.trim_docstring(help_str)
