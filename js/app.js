@@ -83,6 +83,10 @@
         command('status', true);
     });
 
+    $(window).on('beforeunload', function () {
+        return 'Leaving Nebulous Adventure will cause you to lose all your unsaved progress.'
+    });
+
     // Add a submit handler
     $('.prompt form').submit(function () {
         var val = $prompt.val();
