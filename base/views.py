@@ -22,8 +22,12 @@ class GameView(MethodView):
     def post(self):
         uid = session['uid']
 
+        json_request = json.loads(request.data)
+        raw_command = json_request.get('command', '')
+        game_key = json_request.get('gameKey', '')
+
         # Game to Map to
-        game = GameController(uid)
+        game = GameController(uid, game_key=game_key)
 
         action_map = {
             'attack': game.attack,
@@ -41,9 +45,6 @@ class GameView(MethodView):
             'talk': game.talk,
             'use': game.use,
         }
-
-        json_request = json.loads(request.data)
-        raw_command = json_request.get('command', '')
 
         # Split up the command and assign to appropriate variables
         parts = raw_command.lower().split()

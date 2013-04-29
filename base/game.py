@@ -1,3 +1,5 @@
+import os
+
 from base import utils
 from base.models import datastore
 
@@ -51,8 +53,15 @@ class Game(object):
 
         if player is None:
             return utils.trim_docstring(new)
-        else:
-            return utils.trim_docstring(returning)
+
+        payload = {}
+        payload['console'] = utils.trim_docstring(returning)
+        payload['callback'] = {
+            'name': 'gameKey',
+            'args': os.urandom(24).encode('hex'),
+        }
+
+        return payload
 
     def start(self, *args):
         force = True if len(args) > 0 and args[0] == 'new' else False
@@ -78,7 +87,15 @@ class Game(object):
 
         """
 
-        return utils.trim_docstring(welcome)
+        payload = {}
+
+        payload['console'] = utils.trim_docstring(welcome)
+        payload['callback'] = {
+            'name': 'gameKey',
+            'args': os.urandom(24).encode('hex'),
+        }
+
+        return payload
 
     def look(self, direction=""):
         """

@@ -3,8 +3,9 @@ from base.game import Game
 
 class GameController(object):
 
-    def __init__(self, uid):
+    def __init__(self, uid, game_key=None):
         self.uid = uid
+        self.game_key = game_key
 
     def attack(self, name, item_name):
         return Game(self.uid).attack(name, item_name)
