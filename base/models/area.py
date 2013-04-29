@@ -20,8 +20,9 @@ class Area(db.Model):
     player = db.ReferenceProperty(Player, collection_name='areas')
 
     @classmethod
-    def new(cls, player, data):
+    def new(cls, player, data, temp_key=None):
         area = cls(name=data['name'],
+                   temp_key=temp_key,
                    description=data['description'],
                    area_north=data['connecting_areas']['n'],
                    area_east=data['connecting_areas']['e'],
