@@ -41,6 +41,11 @@ body {
     white-space: pre-wrap;
 }
 
+.console pre a.command {
+    color: #D87D50;
+    border-bottom: 1px dashed #E4E7E7;
+}
+
 .orange {
     color: #D87D50;
 }

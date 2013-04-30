@@ -7,6 +7,11 @@
     var $console = $('.console div.content'),
         $scroll = $('.console'),
         $prompt = $('#prompt'),
+        findCommands = function (text) {
+            return text.replace(/`(.*)`/g, function (match, command) {
+                return $('<div>').append($('<a>').addClass('command').attr('href', '#').text(command)).html();
+            });
+        },
         command = function (text, hide) {
             var $indicator = $('.prompt label'),
                 chars = '|/-\\',
@@ -58,11 +63,13 @@
                     }
                 }
                 requestFinished = true;
+                $prompt.focus();
             });
         },
         reply = function (text) {
+            var filtered = findCommands(text);
             $('<pre>')
-                .text(text)
+                .html(filtered)
                 .appendTo($console);
             scrollConsole();
         },
@@ -118,5 +125,12 @@
     // Show help
     $('.prompt a').on('click', function () {
         command('help');
+    });
+
+    $('.console').on('click', 'a.command', function (e) {
+        var $this = $(this);
+
+        command($this.text());
+        e.preventDefault();
     });
 }(window, jQuery));
