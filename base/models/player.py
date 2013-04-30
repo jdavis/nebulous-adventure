@@ -9,12 +9,28 @@ class Player(db.Model):
     player_id = db.StringProperty(required=True)
     private_id = db.StringProperty()
     current_area = db.ReferenceProperty()
+    temp_key = db.StringProperty()
+
+    @classmethod
+    def new(cls, player_id, temp_key=None):
+        player = cls(player_id=player_id,
+                     temp_key=temp_key)
+        player.put()
+
+        return player
 
     def inventory(self):
-        return self.items.filter('available', True)
+        from base.models import Item
+
+        return Item.fetch(self.temp_key, owner=self, available=True)
+
+    def locations(self):
+        from base.models import Area
+
+        return Area.fetch(self.temp_key, player=self, available=True)
 
     def get_item(self, item_name):
-        for item in self.items.filter('available', True):
+        for item in self.inventory():
             if item.name == item_name:
                 return item
 
@@ -29,6 +45,9 @@ class Player(db.Model):
 
     def get_current_area(self):
         if self.current_area is None:
+            area = datastore.get_area_by_name()
+            self.set_current_area(area)
+        elif self.current_area.temp_key != self.temp_key:
             area = datastore.get_area_by_name()
             self.set_current_area(area)
 

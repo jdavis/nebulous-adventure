@@ -24,10 +24,10 @@ class GameView(MethodView):
 
         json_request = json.loads(request.data)
         raw_command = json_request.get('command', '')
-        game_key = json_request.get('gameKey', '')
+        temp_key = json_request.get('tempKey', None)
 
         # Game to Map to
-        game = GameController(uid, game_key=game_key)
+        game = GameController(uid, temp_key=temp_key)
 
         action_map = {
             'attack': game.attack,
@@ -39,8 +39,9 @@ class GameView(MethodView):
             'look': game.look,
             'move': game.move,
             'put': game.put,
+            'save': game.save,
             'start': game.start,
-            'status': game.status,
+            'welcome': game.welcome,
             'take': game.take,
             'talk': game.talk,
             'use': game.use,

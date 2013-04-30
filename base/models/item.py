@@ -22,3 +22,25 @@ class Item(db.Model):
         item.put()
 
         return item
+
+    @classmethod
+    def fetch(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.fetch(None) + saved.fetch(None)
+
+    @classmethod
+    def get(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.get() or saved.get()

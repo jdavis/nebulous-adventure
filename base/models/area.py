@@ -9,6 +9,7 @@ from google.appengine.ext import db
 class Area(db.Model):
     name = db.StringProperty(required=True)
     description = db.StringProperty(required=True)
+    current = db.BooleanProperty(default=False)
     temp_key = db.StringProperty()
 
     area_north = db.StringProperty()
@@ -39,6 +40,28 @@ class Area(db.Model):
 
         return area
 
+    @classmethod
+    def fetch(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.fetch(None) + saved.fetch(None)
+
+    @classmethod
+    def get(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.get() or saved.get()
+
     def get_name(self):
         return self.name
 
@@ -57,7 +80,7 @@ class Area(db.Model):
         else:
             return
 
-        area = Area.all().filter('name', name).filter('player', self.player).get()
+        area = Area.get(self.temp_key, name=name, player=self.player)
 
         if area is None:
             data = world.get_area(room_name=name)

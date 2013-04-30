@@ -1,3 +1,4 @@
+import logging
 import os
 
 from base import utils
@@ -20,12 +21,17 @@ class Game(object):
         'attack',
     ]
 
-    def __init__(self, uid, game_key=None):
+    def __init__(self, uid, temp_key=None):
         self.uid = uid
+        self.temp_key = temp_key
+        logging.info('Initing with temp_key = %s', temp_key)
         datastore.uid = uid
-        datastore.temp_key = game_key
+        datastore.temp_key = temp_key
 
-    def status(self):
+    def welcome(self):
+        if self.temp_key is not None:
+            return 'I\'m sorry, Dave. I\'m afraid I can\'t do that.'
+
         new = """
         Welcome to The Nebulous Adventure.
 
@@ -42,7 +48,7 @@ class Game(object):
         returning = """
         Welcome back to The Nebulous Adventure.
 
-        It looks like you have been here before. We started you off where you were before.
+        It looks like you have been here before. We started you off where you last saved.
 
         If you want to start a new game, use the `start` command.
 
@@ -50,36 +56,25 @@ class Game(object):
 
         """
 
-        player = datastore.get_player()
-
-        if player is None:
-            return utils.trim_docstring(new)
+        datastore.temp_key = os.urandom(24).encode('hex')
+        player = datastore.touch_player()
 
         payload = {}
-        payload['console'] = utils.trim_docstring(returning)
         payload['callback'] = {
-            'name': 'gameKey',
-            'args': os.urandom(24).encode('hex'),
+            'name': 'tempKey',
+            'args': datastore.temp_key,
         }
+
+        if player is None:
+            payload['console'] = utils.trim_docstring(new)
+        else:
+            payload['console'] = utils.trim_docstring(returning)
+
 
         return payload
 
     def start(self, *args):
         force = True if len(args) > 0 and args[0] == 'new' else False
-
-        player = datastore.get_player()
-
-        if force is False:
-            if player is not None:
-                prompt = """
-                It looks like you already have a player.
-
-                Are you sure you'd like to start over? If so, run `start new`.
-
-                """
-                return utils.trim_docstring(prompt)
-
-        player = datastore.create_player()
 
         welcome = """
         You open your eyes. You're on the ground. You stand up and brush yourself off.
@@ -88,15 +83,25 @@ class Game(object):
 
         """
 
-        payload = {}
+        player = datastore.get_player()
 
-        payload['console'] = utils.trim_docstring(welcome)
-        payload['callback'] = {
-            'name': 'gameKey',
-            'args': os.urandom(24).encode('hex'),
-        }
+        if player is None:
+            player = datastore.create_player()
+        else:
+            if force is False:
+                prompt = """
+                It looks like you already have a player.
 
-        return payload
+                Are you sure you'd like to start over? If so, run `start new`.
+
+                """
+                return utils.trim_docstring(prompt)
+
+        return utils.trim_docstring(welcome)
+
+    def save(self, *args):
+        datastore.save_game()
+        return 'Game has been saved.'
 
     def look(self, direction=""):
         """
@@ -129,7 +134,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         current_area = player.get_current_area()
 
@@ -171,7 +176,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         current_area = player.get_current_area()
 
@@ -202,7 +207,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         item = player.get_item(item_name)
 
@@ -229,7 +234,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         current_area = player.get_current_area()
 
@@ -256,7 +261,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         reaction = player.eat_item(item_name)
         datastore.put_player(player)
@@ -281,7 +286,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         current_area = player.get_current_area()
 
@@ -314,7 +319,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         current_area = player.get_current_area()
 
@@ -345,7 +350,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         return player.use_item(item_name)
 
@@ -369,11 +374,11 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         inventory = player.inventory()
 
-        if inventory.count() == 0:
+        if len(inventory) == 0:
             return 'Your inventory is empty.'
 
         return '\n'.join(item.name.capitalize() for item in inventory)
@@ -397,7 +402,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         item = player.get_item(item_name)
         current_area = player.get_current_area()
@@ -425,7 +430,7 @@ class Game(object):
         player = datastore.get_player()
 
         if player is None:
-            return self.status()
+            return self.welcome()
 
         datastore.delete_player(player)
 

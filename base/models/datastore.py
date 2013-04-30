@@ -81,7 +81,7 @@ class DataStore(object):
     def get_area_by_name(self, name=None):
         from base.models import Area
 
-        area = Area.all().filter('name', name).filter('player', self.player).get()
+        area = Area.get(self.temp_key, name=name, player=self.player)
 
         if area is None:
             data = world.get_area(room_name=name)
@@ -93,6 +93,21 @@ class DataStore(object):
 
         return area
 
+    def save_game(self):
+        from base import models
+
+        for area in models.Area.all().filter('temp_key', self.temp_key).fetch(None):
+            area.temp_key = None
+            area.put()
+
+        for item in models.Item.all().filter('temp_key', self.temp_key).fetch(None):
+            item.temp_key = None
+            item.put()
+
+        for character in models.Character.all().filter('temp_key', self.temp_key).fetch(None):
+            character.temp_key = None
+            character.put()
+
     def put_player(self, player):
         player.put()
 
@@ -101,6 +116,17 @@ class DataStore(object):
 
     def put_area(self, area):
         area.put()
+
+    def touch_player(self):
+        logging.info('Touching player with %s', self.temp_key)
+        player = self.get_player()
+
+        if player is None:
+            return None
+
+        player.temp_key = self.temp_key
+        player.put()
+        return player
 
     def get_player(self):
         from base.models import Player
@@ -112,10 +138,6 @@ class DataStore(object):
 
     def create_player(self):
         from base.models import Player
-
-        player = Player(player_id=self.uid)
-        self.put_player(player)
-
-        return player
+        return Player.new(self.uid, temp_key=self.temp_key)
 
 datastore = DataStore()

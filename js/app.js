@@ -25,7 +25,7 @@
                 }, 200),
                 parts = text.split(' '),
                 cmd = parts[0],
-                gameKey = $('body').data('gameKey');
+                tempKey = $('body').data('tempKey');
 
             if (!hide) {
                 $('<pre>')
@@ -42,7 +42,7 @@
             $.ajax({
                 url: '/controller/',
                 type: 'POST',
-                data: JSON.stringify({'command': text, 'gameKey': gameKey}),
+                data: JSON.stringify({'command': text, 'tempKey': tempKey}),
                 contentType: 'application/json',
                 dataType: 'json'
             }).done(function(data){
@@ -91,20 +91,20 @@
         localCommands = {
             'clear': clearCommand,
         },
-        gameKeyCallback = function (key) {
+        tempKeyCallback = function (key) {
             console.log('GameKeyCallback');
-            $('body').data('gameKey', key);
+            $('body').data('tempKey', key);
             console.log('Key = ' + key);
             attachUnload();
         },
         callbacks = {
-            'gameKey': gameKeyCallback,
+            'tempKey': tempKeyCallback,
         };
 
     // Focus prompt on load
     $(document).ready(function () {
         $prompt.focus();
-        command('status', true);
+        command('welcome', true);
     });
 
     // Add a submit handler
