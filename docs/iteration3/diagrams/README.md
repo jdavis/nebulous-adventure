@@ -6,17 +6,15 @@ Process.
 
 ## List of Diagrams
 
-### Take
-![Take](take.png)
+### Save
+![Save](save.png)
 
-### Put
-![Put](put.png)
+### Resume
+![Resume](resume.png)
 
-### Use
-![Use](use.png)
+### Change Color
+![Change Color](change_color.png)
 
-### Attack
-![Attack](attack.png)
+### Change Font
+![Change Font](change_font.png)
 
-### Die
-![Die](die.png)
