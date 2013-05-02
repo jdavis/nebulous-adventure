@@ -62,6 +62,12 @@ class Game(object):
         datastore.temp_key = os.urandom(24).encode('hex')
         player = datastore.touch_player()
 
+
+        if player:
+            style_settings = style.get_settings(theme=player.theme, font=player.font)
+        else:
+            style_settings = style.get_settings()
+
         payload = {}
         payload['callback'] = [
             {
@@ -70,7 +76,7 @@ class Game(object):
             },
             {
                 'name': 'load',
-                'args': style.get_settings(theme=player.theme, font=player.font)
+                'args': style_settings
             }
         ]
 
@@ -106,7 +112,7 @@ class Game(object):
                 return utils.trim_docstring(prompt)
 
         payload = {}
-        payload['console'] = utils.trim_docstring(welcome),
+        payload['console'] = utils.trim_docstring(welcome)
         payload['callback'] = {
             'name': 'load',
             'args': style.get_settings(theme=player.theme, font=player.font)
