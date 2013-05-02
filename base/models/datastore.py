@@ -6,47 +6,6 @@ from google.appengine.ext import db
 from google.appengine.api import memcache
 
 
-def mem_get(key_property):
-    def wrapper(f):
-        def get(*args, **kwargs):
-            model = memcache.get(args[0])
-            if model is not None:
-                return model
-
-            model = f(*args, **kwargs)
-
-            if hasattr(model, key_property):
-                memcache.set(getattr(model, key_property),
-                             model)
-
-            return model
-        return get
-    return wrapper
-
-
-def mem_put(key_property):
-    def wrapper(f):
-        def put(*args, **kwargs):
-            model = args[0]
-            if hasattr(model, key_property):
-                memcache.set(getattr(model, key_property),
-                             model)
-            return f(*args, **kwargs)
-        return put
-    return wrapper
-
-
-def mem_delete(key_property):
-    def wrapper(f):
-        def delete(*args, **kwargs):
-            model = args[0]
-            if hasattr(model, key_property):
-                memcache.delete(getattr(model, key_property))
-            return f(*args, **kwargs)
-        return delete
-    return wrapper
-
-
 class DataStore(object):
 
     def __init__(self):
