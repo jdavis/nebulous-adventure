@@ -6,11 +6,17 @@
 (function (root, $) {
     var $console = $('.console div.content'),
         $scroll = $('.console'),
-        $prompt = $('#prompt'),
+        $prompt = $('.prompt'),
+        $promptInput = $('#prompt'),
+        $container = $('.container'),
+        $body = $('body'),
         findCommands = function (text) {
             return text.replace(/`(.*)`/g, function (match, command) {
                 return $('<div>').append($('<a>').addClass('command').attr('href', '#').text(command)).html();
             });
+        },
+        escape = function (text) {
+            return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
         },
         command = function (text, hide) {
             var $indicator = $('.prompt label'),
@@ -63,11 +69,11 @@
                     }
                 }
                 requestFinished = true;
-                $prompt.focus();
+                $promptInput.focus();
             });
         },
         reply = function (text) {
-            var filtered = findCommands(text);
+            var filtered = findCommands(escape(text));
             $('<pre>')
                 .html(filtered)
                 .appendTo($console);
@@ -85,7 +91,7 @@
             $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
         },
         resetPrompt = function () {
-            $prompt.val('');
+            $promptInput.val('');
             scrollConsole();
         },
         clearCommand = function () {
@@ -99,24 +105,28 @@
             'clear': clearCommand,
         },
         tempKeyCallback = function (key) {
-            console.log('GameKeyCallback');
             $('body').data('tempKey', key);
-            console.log('Key = ' + key);
             attachUnload();
+        },
+        colorCallback = function (colors) {
+            $body.css('backgroundColor', colors.body);
+            $container.css('backgroundColor', colors.container);
+            $prompt.css('backgroundColor', colors.container);
         },
         callbacks = {
             'tempKey': tempKeyCallback,
+            'color': colorCallback,
         };
 
     // Focus prompt on load
     $(document).ready(function () {
-        $prompt.focus();
+        $promptInput.focus();
         command('welcome', true);
     });
 
     // Add a submit handler
     $('.prompt form').submit(function () {
-        var val = $prompt.val();
+        var val = $promptInput.val();
         resetPrompt();
         command(val);
         return false;

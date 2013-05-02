@@ -7,6 +7,8 @@ from base.models import datastore
 
 class Game(object):
     command_list = [
+        'attack',
+        'color',
         'die',
         'eat',
         'examine',
@@ -14,11 +16,10 @@ class Game(object):
         'inventory',
         'look',
         'move',
+        'put',
         'take',
         'talk',
         'use',
-        'put',
-        'attack',
     ]
 
     def __init__(self, uid, temp_key=None):
@@ -70,7 +71,6 @@ class Game(object):
         else:
             payload['console'] = utils.trim_docstring(returning)
 
-
         return payload
 
     def start(self, *args):
@@ -98,6 +98,59 @@ class Game(object):
                 return utils.trim_docstring(prompt)
 
         return utils.trim_docstring(welcome)
+
+    def color(self, *args):
+        """
+        Change the color theme to an optional theme.
+
+        Usage:
+            color [<theme>]
+
+        Options:
+            default     Black as night.
+            tomorrow    Blue as the sea.
+            cobalt      Blue as the sky.
+            espresso    Brown as coffee.
+
+        EXAMPLE:
+            color tomorrow
+                Changing color...
+
+        NOTES:
+            Leave off the theme to return to the default colors.
+        """
+        if len(args) == 0:
+            theme = 'default'
+        else:
+            theme = args[0]
+
+        themes = {
+            'default': {
+                'body': 'hsla(210, 6.6667%, 11.7647%, 1)',
+                'container': 'hsla(216, 6.1728%, 15.8824%, 1)',
+            },
+            'tomorrow': {
+                'body': 'hsla(212, 92%, 20%, 1)',
+                'container': 'hsla(210, 87%, 27%, 1)',
+            },
+            'cobalt': {
+                'body': 'hsla(206, 92.5926%, 10.5882%, 1)',
+                'container': 'hsla(206, 92.7711%, 16.2745%, 1)',
+            },
+            'espresso': {
+                'body': 'hsla(23, 19.5652%, 18.0392%, 1)',
+                'container': 'hsla(21, 12.7820%, 26.0784%, 1)',
+            }
+        }
+
+        payload = {}
+        payload['console'] = 'Changing color...'
+        payload['callback'] = {
+            'name': 'color',
+            'args': themes.get(theme, {})
+        }
+
+        return payload
 
     def save(self, *args):
         datastore.save_game()

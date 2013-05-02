@@ -32,6 +32,7 @@ class GameView(MethodView):
         action_map = {
             'attack': game.attack,
             'die': game.die,
+            'color': game.color,
             'eat': game.eat,
             'examine': game.examine,
             'help': game.help,
