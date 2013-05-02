@@ -58,7 +58,7 @@ class Player(db.Model):
             area = datastore.get_area_by_name()
             self.set_current_area(area)
         elif self.current_area.temp_key != self.temp_key:
-            area = datastore.get_area_by_name()
+            area = datastore.get_area_by_name(self.current_area.name)
             self.set_current_area(area)
 
         return self.current_area
