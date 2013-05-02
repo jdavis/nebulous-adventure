@@ -61,10 +61,11 @@
                     reply(data.console);
                 }
                 if ('callback' in data) {
-                    var cb = data['callback']['name'],
-                        args = data['callback']['args'];
+                    var list = [].concat(data.callback);
+                    for(var i = 0; i < list.length; i++) {
+                        var cb = list[i]['name'],
+                            args = list[i]['args'];
 
-                    if (cb in callbacks) {
                         callbacks[cb].apply(this, [].concat(args));
                     }
                 }
@@ -105,17 +106,25 @@
             'clear': clearCommand,
         },
         tempKeyCallback = function (key) {
+            console.log('Temp key callback');
             $('body').data('tempKey', key);
             attachUnload();
         },
-        colorCallback = function (colors) {
-            $body.css('backgroundColor', colors.body);
-            $container.css('backgroundColor', colors.container);
-            $prompt.css('backgroundColor', colors.container);
+        loadCallback = function (settings) {
+            console.log('Loading callback');
+            console.log(settings);
+            if (settings.theme) {
+                $body.css('backgroundColor', settings.theme.body);
+                $container.css('backgroundColor', settings.theme.container);
+                $prompt.css('backgroundColor', settings.theme.container);
+            }
+            if (settings.font) {
+                console.log('Loading font...');
+            }
         },
         callbacks = {
             'tempKey': tempKeyCallback,
-            'color': colorCallback,
+            'load': loadCallback,
         };
 
     // Focus prompt on load

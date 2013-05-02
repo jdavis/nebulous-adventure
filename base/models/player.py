@@ -8,6 +8,7 @@ from google.appengine.ext import db
 class Player(db.Model):
     player_id = db.StringProperty(required=True)
     private_id = db.StringProperty()
+    theme = db.StringProperty(default='default')
     current_area = db.ReferenceProperty()
     temp_key = db.StringProperty()
 
@@ -35,6 +36,10 @@ class Player(db.Model):
                 return item
 
         return None
+
+    def change_theme(self, theme):
+        self.theme = theme
+        self.put()
 
     def add_item(self, item):
         if item is None:

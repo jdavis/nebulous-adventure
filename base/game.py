@@ -2,6 +2,7 @@ import logging
 import os
 
 from base import utils
+from base import style
 from base.models import datastore
 
 
@@ -61,10 +62,16 @@ class Game(object):
         player = datastore.touch_player()
 
         payload = {}
-        payload['callback'] = {
-            'name': 'tempKey',
-            'args': datastore.temp_key,
-        }
+        payload['callback'] = [
+            {
+                'name': 'tempKey',
+                'args': datastore.temp_key,
+            },
+            {
+                'name': 'load',
+                'args': style.get_settings(theme=player.theme)
+            }
+        ]
 
         if player is None:
             payload['console'] = utils.trim_docstring(new)
@@ -97,9 +104,18 @@ class Game(object):
                 """
                 return utils.trim_docstring(prompt)
 
-        return utils.trim_docstring(welcome)
+        theme = THEMES.get(player.theme, {})
 
-    def color(self, *args):
+        payload = {}
+        payload['console'] = utils.trim_docstring(welcome),
+        payload['callback'] = {
+            'name': 'color',
+            'args': theme,
+        }
+
+        return payload
+
+    def color(self, theme='default'):
         """
         Change the color theme to an optional theme.
 
@@ -119,35 +135,19 @@ class Game(object):
         NOTES:
             Leave off the theme to return to the default colors.
         """
-        if len(args) == 0:
-            theme = 'default'
-        else:
-            theme = args[0]
 
-        themes = {
-            'default': {
-                'body': 'hsla(210, 6.6667%, 11.7647%, 1)',
-                'container': 'hsla(216, 6.1728%, 15.8824%, 1)',
-            },
-            'tomorrow': {
-                'body': 'hsla(212, 92%, 20%, 1)',
-                'container': 'hsla(210, 87%, 27%, 1)',
-            },
-            'cobalt': {
-                'body': 'hsla(206, 92.5926%, 10.5882%, 1)',
-                'container': 'hsla(206, 92.7711%, 16.2745%, 1)',
-            },
-            'espresso': {
-                'body': 'hsla(23, 19.5652%, 18.0392%, 1)',
-                'container': 'hsla(21, 12.7820%, 26.0784%, 1)',
-            }
-        }
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        player.change_theme(theme)
 
         payload = {}
         payload['console'] = 'Changing color...'
         payload['callback'] = {
-            'name': 'color',
-            'args': themes.get(theme, {})
+            'name': 'load',
+            'args': style.get_settings(theme=theme)
         }
 
         return payload
