@@ -17,12 +17,25 @@ THEMES = {
     }
 }
 
+FONT = {
+    'sans-serif': 'sans-serif',
+    'serif': 'serif',
+    'fantasy': 'fantasy',
+    'cursive': 'cursive',
+    'monospace': 'Monaco, Menlo, Consolas, "Courier New", monospace',
+}
+
 
 def get_theme(theme='default'):
     return THEMES.get(theme, {})
 
 
+def get_font(font='monospace'):
+    return FONT[font] if font in FONT else 'monospace'
+
+
 def get_settings(theme='default', font='default'):
     return {
         'theme': get_theme(theme),
+        'font': get_font(font),
     }

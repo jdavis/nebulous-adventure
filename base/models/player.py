@@ -9,6 +9,7 @@ class Player(db.Model):
     player_id = db.StringProperty(required=True)
     private_id = db.StringProperty()
     theme = db.StringProperty(default='default')
+    font = db.StringProperty(default='monospace')
     current_area = db.ReferenceProperty()
     temp_key = db.StringProperty()
 
@@ -39,6 +40,10 @@ class Player(db.Model):
 
     def change_theme(self, theme):
         self.theme = theme
+        self.put()
+
+    def change_font(self, font):
+        self.font = font
         self.put()
 
     def add_item(self, item):

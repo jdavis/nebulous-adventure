@@ -34,6 +34,7 @@ class GameView(MethodView):
             'die': game.die,
             'color': game.color,
             'eat': game.eat,
+            'font': game.font,
             'examine': game.examine,
             'help': game.help,
             'inventory': game.inventory,

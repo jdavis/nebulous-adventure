@@ -119,7 +119,7 @@
                 $prompt.css('backgroundColor', settings.theme.container);
             }
             if (settings.font) {
-                console.log('Loading font...');
+                $('.console div.content > pre').css('fontFamily', settings.font)
             }
         },
         callbacks = {

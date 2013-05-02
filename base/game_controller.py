@@ -54,3 +54,6 @@ class GameController(object):
 
     def color(self, *args):
         return Game(self.uid, self.temp_key).color(*args)
+
+    def font(self, *args):
+        return Game(self.uid, self.temp_key).font(*args)

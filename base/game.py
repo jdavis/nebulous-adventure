@@ -12,6 +12,7 @@ class Game(object):
         'color',
         'die',
         'eat',
+        'font',
         'examine',
         'help',
         'inventory',
@@ -69,7 +70,7 @@ class Game(object):
             },
             {
                 'name': 'load',
-                'args': style.get_settings(theme=player.theme)
+                'args': style.get_settings(theme=player.theme, font=player.font)
             }
         ]
 
@@ -104,13 +105,11 @@ class Game(object):
                 """
                 return utils.trim_docstring(prompt)
 
-        theme = THEMES.get(player.theme, {})
-
         payload = {}
         payload['console'] = utils.trim_docstring(welcome),
         payload['callback'] = {
-            'name': 'color',
-            'args': theme,
+            'name': 'load',
+            'args': style.get_settings(theme=player.theme, font=player.font)
         }
 
         return payload
@@ -123,10 +122,10 @@ class Game(object):
             color [<theme>]
 
         Options:
-            default     Black as night.
-            tomorrow    Blue as the sea.
-            cobalt      Blue as the sky.
-            espresso    Brown as coffee.
+            default
+            tomorrow
+            cobalt
+            espresso
 
         EXAMPLE:
             color tomorrow
@@ -147,7 +146,45 @@ class Game(object):
         payload['console'] = 'Changing color...'
         payload['callback'] = {
             'name': 'load',
-            'args': style.get_settings(theme=theme)
+            'args': style.get_settings(theme=theme, font=player.font)
+        }
+
+        return payload
+
+    def font(self, font='monospace'):
+        """
+        Change the font to an optional font family.
+
+        Usage:
+            font [<family>]
+
+        Options:
+            sans-serif
+            serif
+            fantasy
+            cursive
+            monospace
+
+        EXAMPLE:
+            font cursive
+                Changing font...
+
+        NOTES:
+            Leave off the family to return to the default font.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        player.change_font(font)
+
+        payload = {}
+        payload['console'] = 'Changing font...'
+        payload['callback'] = {
+            'name': 'load',
+            'args': style.get_settings(theme=player.theme, font=font)
         }
 
         return payload
