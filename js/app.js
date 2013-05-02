@@ -121,6 +121,7 @@
             if (settings.font) {
                 $('.console div.content > pre').css('fontFamily', settings.font)
             }
+            scrollConsole();
         },
         callbacks = {
             'tempKey': tempKeyCallback,
