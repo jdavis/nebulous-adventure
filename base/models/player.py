@@ -7,7 +7,6 @@ from google.appengine.ext import db
 
 class Player(db.Model):
     player_id = db.StringProperty(required=True)
-    private_id = db.StringProperty()
     theme = db.StringProperty(default='default')
     font = db.StringProperty(default='monospace')
     current_area = db.ReferenceProperty()

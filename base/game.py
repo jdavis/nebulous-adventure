@@ -226,7 +226,7 @@ class Game(object):
         player.save()
         datastore.put_player(player)
 
-        return utils.trim_docstring(text.format(code=player.private_id))
+        return utils.trim_docstring(text.format(code=player.player_id))
 
     def resume(self, *args):
         """
@@ -247,7 +247,7 @@ class Game(object):
         if len(args) != 1:
             return 'Invalid arguments. Please provide a resume code.'
 
-        self.uid = args[0]
+        datastore.uid = args[0]
 
         player = datastore.get_player()
 
