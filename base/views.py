@@ -41,6 +41,7 @@ class GameView(MethodView):
             'look': game.look,
             'move': game.move,
             'put': game.put,
+            'resume': game.resume,
             'save': game.save,
             'start': game.start,
             'welcome': game.welcome,

@@ -52,6 +52,9 @@ class GameController(object):
     def save(self, *args):
         return Game(self.uid, self.temp_key).save(*args)
 
+    def resume(self, *args):
+        return Game(self.uid, self.temp_key).resume(*args)
+
     def color(self, *args):
         return Game(self.uid, self.temp_key).color(*args)
 

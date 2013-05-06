@@ -62,7 +62,6 @@ class Game(object):
         datastore.temp_key = os.urandom(24).encode('hex')
         player = datastore.touch_player()
 
-
         if player:
             style_settings = style.get_settings(theme=player.theme, font=player.font)
         else:
@@ -73,8 +72,7 @@ class Game(object):
             {
                 'name': 'tempKey',
                 'args': datastore.temp_key,
-            },
-            {
+            }, {
                 'name': 'load',
                 'args': style_settings
             }
@@ -196,8 +194,70 @@ class Game(object):
         return payload
 
     def save(self, *args):
-        datastore.save_game()
-        return 'Game has been saved.'
+        """
+        Save your game.
+
+        Usage:
+            save
+
+        Options:
+            None
+
+        EXAMPLE:
+            save
+                Will give details on how to resume your game in the future.
+        """
+
+        text = """
+        Your game has been saved successfully.
+
+        To play it again in the future, write down this code:
+            {code}
+
+        Then run it with the `resume` command like so:
+            `resume {code}`
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        player.save()
+        datastore.put_player(player)
+
+        return utils.trim_docstring(text.format(code=player.private_id))
+
+    def resume(self, *args):
+        """
+        Resume your past game.
+
+        Usage:
+            resume <code>
+
+        Options:
+            code       The code that was provided when saved.
+
+        EXAMPLE:
+            resume g65478asd1f35asg847
+                Resuming game...
+
+        """
+
+        if len(args) != 1:
+            return 'Invalid arguments. Please provide a resume code.'
+
+        self.uid = args[0]
+
+        player = datastore.get_player()
+
+        if player is None:
+            return 'Unable to find player with that code.'
+        else:
+            current_area = player.get_current_area()
+            return current_area.description
+
+        return 'Resuming game'
 
     def look(self, direction=""):
         """

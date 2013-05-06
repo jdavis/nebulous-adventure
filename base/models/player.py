@@ -53,6 +53,9 @@ class Player(db.Model):
         item.owner = self
         item.put()
 
+    def save(self):
+        datastore.save_game()
+
     def get_current_area(self):
         if self.current_area is None:
             area = datastore.get_area_by_name()
