@@ -1,50 +1,95 @@
-from .datastore import DataStore
+import logging
+
+from .datastore import datastore
 
 from google.appengine.ext import db
 
 
 class Player(db.Model):
-    player_id = db.StringProperty()
-    inventory = db.StringListProperty()
-    current_area_name = db.StringProperty()
+    player_id = db.StringProperty(required=True)
+    theme = db.StringProperty(default='default')
+    font = db.StringProperty(default='monospace')
+    current_area = db.ReferenceProperty()
+    temp_key = db.StringProperty()
 
-    def get_inventory(self):
-        return self.inventory
+    @classmethod
+    def new(cls, player_id, temp_key=None):
+        player = cls(player_id=player_id,
+                     temp_key=temp_key)
+        player.put()
+
+        return player
+
+    def inventory(self):
+        from base.models import Item
+
+        return Item.fetch(self.temp_key, owner=self, available=True)
+
+    def locations(self):
+        from base.models import Area
+
+        return Area.fetch(self.temp_key, player=self, available=True)
 
     def get_item(self, item_name):
-        if item_name in self.inventory:
-            return DataStore().get_item_by_name(item_name)
+        for item in self.inventory():
+            if item.name == item_name:
+                return item
+
         return None
 
+    def change_theme(self, theme):
+        self.theme = theme
+        self.put()
+
+    def change_font(self, font):
+        self.font = font
+        self.put()
+
     def add_item(self, item):
-        if item is not None:
-            self.inventory.append(item.get_name())
-            return item.get_description()
-        return "What item?"
+        if item is None:
+            return
+
+        item.owner = self
+        item.put()
+
+    def save(self):
+        datastore.save_game()
 
     def get_current_area(self):
-        return DataStore().get_area_by_name(self.current_area_name)
+        if self.current_area is None:
+            area = datastore.get_area_by_name()
+            self.set_current_area(area)
+        elif self.current_area.temp_key != self.temp_key:
+            area = datastore.get_area_by_name(self.current_area.name)
+            self.set_current_area(area)
 
-    def set_area(self, area):
-        self.current_area_name = area.get_name()
-        return area.get_description()
+        return self.current_area
+
+    def set_current_area(self, area):
+        self.current_area = area
+        self.put()
 
     def use_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            return item.use()
-        return "Item DNE"
+
+        if item is None:
+            return 'You don\'t have that item in your inventory.'
+
+        return item.use_reaction
 
     def eat_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            self.inventory.remove(item_name)
-            return item.eat()
-        return "Item DNE"
+
+        if item is None:
+            return 'You don\'t have that item in your inventory.'
+
+        item.available = False
+        item.put()
+
+        return item.eat_reaction
 
     def take_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            self.inventory.remove(item_name)
-            return item
-        return None
+        item.delete()
+
+        return item

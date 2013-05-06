@@ -7,8 +7,12 @@ a { text-decoration: none; }
 body {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     font-size: 14px;
-    background-color: #1d1f21;
-    color: #E4E7E7;
+    background-color: hsla(210, 6%, 12%, 1);
+    color: hsla(180, 6%, 90%, 1);
+    -webkit-transition: background-color 1000ms linear;
+       -moz-transition: background-color 1000ms linear;
+         -o-transition: background-color 1000ms linear;
+            transition: background-color 1000ms linear;
 }
 
 /* We could make this webpage responsive o.O */
@@ -17,9 +21,13 @@ body {
     width: 940px;
     height: 100%;
     margin: 0 auto;
-    background-color: #26282B;
+    background-color: hsla(216, 6%, 16%, 1);
     overflow: hidden;
     position: relative;
+    -webkit-transition: background-color 1000ms linear;
+       -moz-transition: background-color 1000ms linear;
+         -o-transition: background-color 1000ms linear;
+            transition: background-color 1000ms linear;
 }
 
 .console {
@@ -38,6 +46,12 @@ body {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     margin-bottom: 12px;
     font-size: 14px;
+    white-space: pre-wrap;
+}
+
+.console pre a.command {
+    color: #D87D50;
+    border-bottom: 1px dashed #E4E7E7;
 }
 
 .orange {
@@ -75,6 +89,10 @@ body {
     background-color: #26282B;
     position: absolute;
     z-index: 1;
+    -webkit-transition: background-color 1000ms linear;
+       -moz-transition: background-color 1000ms linear;
+         -o-transition: background-color 1000ms linear;
+            transition: background-color 1000ms linear;
 }
 
 .prompt label {

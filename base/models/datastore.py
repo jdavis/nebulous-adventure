@@ -1,82 +1,102 @@
+import logging
+
+from base import world
+
 from google.appengine.ext import db
 from google.appengine.api import memcache
 
-import logging
-
-def mem_get(key_property):
-    def wrapper(f):
-        def get(*args, **kwargs):
-            model = memcache.get(args[1])
-            if model is not None:
-                return model
-
-            model = f(*args, **kwargs)
-
-            if hasattr(model, key_property):
-                memcache.set(getattr(model, key_property), 
-                             model)
-
-            return model
-        return get
-    return wrapper
-
-def mem_put(key_property):
-    def wrapper(f):
-        def put(*args, **kwargs):
-            model = args[1]
-            if hasattr(model, key_property):
-                memcache.set(getattr(model, key_property), 
-                             model)
-            return f(*args, **kwargs)
-        return put
-    return wrapper
-
-def mem_delete(key_property):
-    def wrapper(f):
-        def delete(*args, **kwargs):
-            model = args[1]
-            if hasattr(model, key_property):
-                memcache.delete(getattr(model, key_property))
-            return f(*args, **kwargs)
-        return delete
-    return wrapper
 
 class DataStore(object):
 
-    @mem_get('name')
-    def get_item_by_name(self, item_name):
+    def __init__(self):
+        self.uid = ''
+        self.temp_key = None
+        self.player = None
+
+    def get_item_by_name(self, name):
         from base.models import Item
-        return Item.all().filter('name', item_name).get()
 
-    @mem_get('name')
-    def get_character_by_name(self, name):
+        data = world.get_item(name)
+
+        if data is None:
+            return None
+
+        item = Item.new(data, temp_key=self.temp_key)
+
+        return item
+
+    def get_character_by_name(self, area, name):
         from base.models import Character
-        return Character.all().filter('name', name).get()
 
-    @mem_get('name')
-    def get_area_by_name(self, name):
+        data = world.get_character(name)
+
+        if data is None:
+            return None
+
+        character = Character.new(area, data, temp_key=self.temp_key)
+
+        return character
+
+    def get_area_by_name(self, name=None):
         from base.models import Area
-        return Area.all().filter('name', name).get()
 
-    @mem_put('player_id')
+        area = Area.get(self.temp_key, name=name, player=self.player)
+
+        if area is None:
+            data = world.get_area(room_name=name)
+
+            if data is None:
+                return None
+
+            area = Area.new(self.player, data, temp_key=self.temp_key)
+
+        return area
+
+    def save_game(self):
+        from base import models
+
+        for area in models.Area.all().filter('temp_key', self.temp_key).fetch(None):
+            area.temp_key = None
+            area.put()
+
+        for item in models.Item.all().filter('temp_key', self.temp_key).fetch(None):
+            item.temp_key = None
+            item.put()
+
+        for character in models.Character.all().filter('temp_key', self.temp_key).fetch(None):
+            character.temp_key = None
+            character.put()
+
     def put_player(self, player):
         player.put()
 
-    @mem_delete('player_id')
     def delete_player(self, player):
         db.delete(player)
 
-    @mem_put('name')
     def put_area(self, area):
         area.put()
 
-    @mem_get('player_id')
-    def get_player(self, uid):
+    def touch_player(self):
+        logging.info('Touching player with %s', self.temp_key)
+        player = self.get_player()
+
+        if player is None:
+            return None
+
+        player.temp_key = self.temp_key
+        player.put()
+        return player
+
+    def get_player(self):
         from base.models import Player
 
-        player = Player.all().filter('player_id', uid).get()
-        if player is None:
-            player = Player(player_id=uid, inventory=[], current_area_name='start')
-            self.put_player(player)
+        player = Player.all().filter('player_id', self.uid).get()
+        self.player = player
 
         return player
+
+    def create_player(self):
+        from base.models import Player
+        return Player.new(self.uid, temp_key=self.temp_key)
+
+datastore = DataStore()
