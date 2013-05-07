@@ -57,6 +57,763 @@ if __name__ == '__main__':
 
 ```
 
+## base/game.py
+
+```python
+import logging
+import os
+
+from base import utils
+from base import style
+from base.models import datastore
+
+
+class Game(object):
+    command_list = [
+        'attack',
+        'color',
+        'die',
+        'eat',
+        'examine',
+        'font',
+        'help',
+        'inventory',
+        'look',
+        'move',
+        'put',
+        'resume',
+        'save',
+        'take',
+        'talk',
+        'use',
+    ]
+
+    def __init__(self, uid, temp_key=None):
+        self.uid = uid
+        self.temp_key = temp_key
+        logging.info('Initing with temp_key = %s', temp_key)
+        datastore.uid = uid
+        datastore.temp_key = temp_key
+
+    def welcome(self):
+        if self.temp_key is not None:
+            return 'I\'m sorry, Dave. I\'m afraid I can\'t do that.'
+
+        new = """
+        Welcome to The Nebulous Adventure.
+
+        You look confused. Don't worry, everyone in The Nebulous Adventure is confused.
+
+        If this is your first time playing, check out the `help` command.
+
+        Once you have a feel for the game, go ahead and start a new game with the `start` command.
+
+        If you are a returning player, run the `resume` command with your given password. Or go to the URL that you were supplied.
+
+        """
+
+        returning = """
+        Welcome back to The Nebulous Adventure.
+
+        It looks like you have been here before. We started you off where you last saved.
+
+        If you want to start a new game, use the `start` command.
+
+        If you would like to resume another game, run the `resume` command with your given password. Or go to the URL that you were supplied.
+
+        """
+
+        datastore.temp_key = os.urandom(24).encode('hex')
+        player = datastore.touch_player()
+
+        if player:
+            style_settings = style.get_settings(theme=player.theme, font=player.font)
+        else:
+            style_settings = style.get_settings()
+
+        payload = {}
+        payload['callback'] = [
+            {
+                'name': 'tempKey',
+                'args': datastore.temp_key,
+            }, {
+                'name': 'load',
+                'args': style_settings
+            }
+        ]
+
+        if player is None:
+            payload['console'] = utils.trim_docstring(new)
+        else:
+            payload['console'] = utils.trim_docstring(returning)
+
+        return payload
+
+    def start(self, *args):
+        force = True if len(args) > 0 and args[0] == 'new' else False
+
+        welcome = """
+        You open your eyes. You're on the ground. You stand up and brush yourself off.
+
+        "Where am I?" you wonder. "This place sure looks nebulous," your mind says.
+
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            player = datastore.create_player()
+        else:
+            if force is False:
+                prompt = """
+                It looks like you already have a player.
+
+                Are you sure you'd like to start over? If so, run `start new`.
+
+                """
+                return utils.trim_docstring(prompt)
+
+        payload = {}
+        payload['console'] = utils.trim_docstring(welcome)
+        payload['callback'] = {
+            'name': 'load',
+            'args': style.get_settings(theme=player.theme, font=player.font)
+        }
+
+        return payload
+
+    def color(self, theme='default'):
+        """
+        Change the color theme to an optional theme.
+
+        Usage:
+            color [<theme>]
+
+        Options:
+            default
+            tomorrow
+            cobalt
+            espresso
+
+        EXAMPLE:
+            color tomorrow
+                Changing color...
+
+        NOTES:
+            Leave off the theme to return to the default colors.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        player.change_theme(theme)
+
+        datastore.put_player(player)
+
+        payload = {}
+        payload['console'] = 'Changing color...'
+        payload['callback'] = {
+            'name': 'load',
+            'args': style.get_settings(theme=theme, font=player.font)
+        }
+
+        return payload
+
+    def font(self, font='monospace'):
+        """
+        Change the font to an optional font family.
+
+        Usage:
+            font [<family>]
+
+        Options:
+            sans-serif
+            serif
+            fantasy
+            cursive
+            monospace
+
+        EXAMPLE:
+            font cursive
+                Changing font...
+
+        NOTES:
+            Leave off the family to return to the default font.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        player.change_font(font)
+
+        datastore.put_player(player)
+
+        payload = {}
+        payload['console'] = 'Changing font...'
+        payload['callback'] = {
+            'name': 'load',
+            'args': style.get_settings(theme=player.theme, font=font)
+        }
+
+        return payload
+
+    def save(self, *args):
+        """
+        Save your game.
+
+        Usage:
+            save
+
+        Options:
+            None
+
+        EXAMPLE:
+            save
+                Will give details on how to resume your game in the future.
+        """
+
+        text = """
+        Your game has been saved successfully.
+
+        To play it again in the future, write down this code:
+            {code}
+
+        Then run it with the `resume` command like so:
+            `resume {code}`
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        player.save()
+        datastore.put_player(player)
+
+        return utils.trim_docstring(text.format(code=player.player_id))
+
+    def resume(self, *args):
+        """
+        Resume your past game.
+
+        Usage:
+            resume <code>
+
+        Options:
+            code       The code that was provided when saved.
+
+        EXAMPLE:
+            resume g65478asd1f35asg847
+                Resuming game...
+
+        """
+
+        if len(args) != 1:
+            return 'Invalid arguments. Please provide a resume code.'
+
+        datastore.uid = args[0]
+
+        player = datastore.get_player()
+
+        if player is None:
+            return 'Unable to find player with that code.'
+
+        current_area = player.get_current_area()
+        return current_area.description
+
+    def look(self, direction=""):
+        """
+        Look around at the room you are in.
+
+        Usage:
+            look <direction>
+
+        Options:
+            north       Room to the north
+            south       Room to the south
+            east        Room to the east
+            west        Room to the west
+
+        EXAMPLE:
+            look n s e w
+                Will print the descriptions of all the given rooms.
+
+        NOTES:
+            For convenience, the letters n, s, e, w can also be used.
+        """
+
+        directions = [
+            'n', 'north',
+            'e', 'east',
+            's', 'south',
+            'w', 'west'
+        ]
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        current_area = player.get_current_area()
+
+        if direction == "":
+            return current_area.description
+
+        if direction not in directions:
+            return 'Invalid direction'
+
+        neighbor = current_area.get_neighbor(direction)
+
+        if neighbor is None:
+            return 'There\'s nothing over there!'
+
+        return neighbor.description
+
+    def move(self, direction):
+        """
+        Move to a given location.
+
+        Usage:
+            move <direction>
+
+        Options:
+            north       Room to the north
+            south       Room to the south
+            east        Room to the east
+            west        Room to the west
+
+        EXAMPLE:
+            move s
+                Will move your current character to the room to the south (if
+                able).
+
+        NOTES:
+            For convenience, the letters n, s, e, w can also be used.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        current_area = player.get_current_area()
+
+        next_area = current_area.get_neighbor(direction)
+
+        if next_area is None:
+            return 'Ummmm I can not go over there...'
+
+        player.set_current_area(next_area)
+
+        return next_area.description
+
+    def examine(self, item_name):
+        """
+        Examine a given item in your inventory or the room.
+
+        Usage:
+            examine <item name>
+
+        Options:
+            Any valid item(s) name.
+
+        EXAMPLE:
+            examine sock
+                Will print the description for the sock in the current room.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        item = player.get_item(item_name)
+
+        if item is None:
+            return 'I do not have that item...'
+
+        return item.description
+
+    def talk(self, char_name):
+        """
+        Talk to an NPC that is in your current area.
+
+        Usage:
+            talk <NPC name>
+
+        Options:
+            Any valid NPC name.
+
+        EXAMPLE:
+            talk 'uncle iroh'
+                Will print what Uncle Iroh has to say.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        current_area = player.get_current_area()
+
+        if current_area is None:
+            return 'There is no one by that name...'
+
+        return current_area.talk_to(char_name)
+
+    def eat(self, item_name):
+        """
+        Eat the given item that you requested.
+
+        Usage:
+            eat <item name>
+
+        Options:
+            Any valid item name in the room or your inventory.
+
+        EXAMPLE:
+            eat cupcake
+                Will consume the cupcake, mmmmmm.... cupcakes.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        reaction = player.eat_item(item_name)
+        datastore.put_player(player)
+
+        return reaction
+
+    def take(self, item_name):
+        """
+        Take the given item that you requested.
+
+        Usage:
+            take <item name>
+
+        Options:
+            Any valid item name in the surrounding area
+
+        EXAMPLE:
+            take sock
+                Will add sock to your inventory.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        current_area = player.get_current_area()
+
+        item = current_area.take_item(item_name)
+
+        if item is None:
+            return 'That item doesn\'t exist here.'
+
+        player.add_item(item)
+
+        datastore.put_player(player)
+
+        return item.description
+
+    def put(self, item_name):
+        """
+        Put the given item down in the current area.
+
+        Usage:
+            put <item name>
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            put kitten
+                You put the kitten down.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        current_area = player.get_current_area()
+
+        item = player.take_item(item_name)
+
+        if item is None:
+            return 'That item doesn\'t exist.'
+
+        current_area.add_item(item)
+
+        return 'You place the {0} in the {1}.'.format(item.name, current_area.name)
+
+    def use(self, item_name):
+        """
+        Use the given item that you requested.
+
+        Usage:
+            use <item name>
+
+        Options:
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            use jetpack
+                You are now floating in the air.
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        return player.use_item(item_name)
+
+    def inventory(self):
+        """
+        Look into your inventory.
+
+        Usage:
+            look
+
+        Options:
+            None
+
+        EXAMPLE:
+            inventory
+                Sock
+                Sword
+                Trombone
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        inventory = player.inventory()
+
+        if len(inventory) == 0:
+            return 'Your inventory is empty.'
+
+        return '\n'.join(item.name.capitalize() for item in inventory)
+
+    def attack(self, character_name, item_name):
+        """
+        Attack the given character with the given item
+
+        Usage:
+            use <character name> <item name>
+
+        Options:
+            Any valid character in the area.
+            Any valid item name in your inventory.
+
+        EXAMPLE:
+            attack gollum
+                Gollum: My preciouss...
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        item = player.get_item(item_name)
+        current_area = player.get_current_area()
+
+        if item is None:
+            return 'You don\'t have that item.'
+
+        return current_area.attack(character_name, item)
+
+    def die(self):
+        """
+        Mysteriously become lifeless....
+
+        Usage:
+            die
+
+        Options:
+            None
+
+        EXAMPLE:
+            die
+                You are now dead...
+        """
+
+        player = datastore.get_player()
+
+        if player is None:
+            return self.welcome()
+
+        datastore.delete_player(player)
+
+        return 'You are now dead...'
+
+    def help(self, command=None):
+        """
+        Show the help for a given command.
+
+        Usage:
+            help <command>
+
+        Options:
+            A valid game command.
+
+        EXAMPLE:
+            help help
+                [Prints this message]
+        """
+
+        if command is not None and command in Game.command_list:
+            help_str = object.__getattribute__(self, command).__doc__
+            return utils.trim_docstring(help_str)
+
+        result = ['List of available commands:\n']
+
+        if command is not None and command not in Game.command_list:
+            return 'You expect me to know what that is?'
+
+        for cmd in Game.command_list:
+            if cmd == 'help':
+                continue
+
+            help_str = object.__getattribute__(self, cmd).__doc__
+
+            link_cmd = '`{0}`'.format(cmd.lstrip())
+            # We only want the description
+            line = '\t{cmd}{desc}'.format(cmd=link_cmd.ljust(12),
+                                          desc=help_str.split('\n')[1])
+
+            result.append(line)
+
+        return '\n'.join(result)
+
+```
+
+## base/game_controller.py
+
+```python
+from base.game import Game
+
+
+class GameController(object):
+
+    def __init__(self, uid, temp_key=None):
+        self.uid = uid
+        self.temp_key = temp_key
+
+    def attack(self, name, item_name):
+        return Game(self.uid, self.temp_key).attack(name, item_name)
+
+    def look(self, direction=""):
+        return Game(self.uid, self.temp_key).look(direction)
+
+    def move(self, direction):
+        return Game(self.uid, self.temp_key).move(direction)
+
+    def examine(self, item_name):
+        return Game(self.uid, self.temp_key).examine(item_name)
+
+    def talk(self, char_name):
+        return Game(self.uid, self.temp_key).talk(char_name)
+
+    def eat(self, item_name):
+        return Game(self.uid, self.temp_key).eat(item_name)
+
+    def take(self, item_name):
+        return Game(self.uid, self.temp_key).take(item_name)
+
+    def put(self, item_name):
+        return Game(self.uid, self.temp_key).put(item_name)
+
+    def die(self):
+        return Game(self.uid, self.temp_key).die()
+
+    def use(self, item_name):
+        return Game(self.uid, self.temp_key).use(item_name)
+
+    def inventory(self):
+        return Game(self.uid, self.temp_key).inventory()
+
+    def help(self, command=None):
+        return Game(self.uid, self.temp_key).help(command)
+
+    def welcome(self):
+        return Game(self.uid, self.temp_key).welcome()
+
+    def start(self, *args):
+        return Game(self.uid, self.temp_key).start(*args)
+
+    def save(self, *args):
+        return Game(self.uid, self.temp_key).save(*args)
+
+    def resume(self, *args):
+        return Game(self.uid, self.temp_key).resume(*args)
+
+    def color(self, *args):
+        return Game(self.uid, self.temp_key).color(*args)
+
+    def font(self, *args):
+        return Game(self.uid, self.temp_key).font(*args)
+
+```
+
+## base/style.py
+
+```python
+THEMES = {
+    'default': {
+        'body': 'hsla(210, 6.6667%, 11.7647%, 1)',
+        'container': 'hsla(216, 6.1728%, 15.8824%, 1)',
+    },
+    'tomorrow': {
+        'body': 'hsla(212, 92%, 20%, 1)',
+        'container': 'hsla(210, 87%, 27%, 1)',
+    },
+    'cobalt': {
+        'body': 'hsla(206, 92.5926%, 10.5882%, 1)',
+        'container': 'hsla(206, 92.7711%, 16.2745%, 1)',
+    },
+    'espresso': {
+        'body': 'hsla(23, 19.5652%, 18.0392%, 1)',
+        'container': 'hsla(21, 12.7820%, 26.0784%, 1)',
+    }
+}
+
+FONT = {
+    'sans-serif': 'sans-serif',
+    'serif': 'serif',
+    'fantasy': 'fantasy',
+    'cursive': 'cursive',
+    'monospace': 'Monaco, Menlo, Consolas, "Courier New", monospace',
+}
+
+
+def get_theme(theme='default'):
+    return THEMES.get(theme, {})
+
+
+def get_font(font='monospace'):
+    return FONT[font] if font in FONT else 'monospace'
+
+
+def get_settings(theme='default', font='default'):
+    return {
+        'theme': get_theme(theme),
+        'font': get_font(font),
+    }
+
+```
+
 ## base/urls.py
 
 ```python
@@ -66,88 +823,6 @@ from base import views as base_views
 def apply_urls(app):
     app.add_url_rule('/', view_func=base_views.HomeView.as_view('home'))
     app.add_url_rule('/controller/', view_func=base_views.GameView.as_view('control'))
-
-
-```
-
-## base/views.py
-
-```python
-import json
-import logging
-import os
-
-from flask import request, session
-
-from flask.views import MethodView
-from flask.templating import render_template
-
-from base.models import GameController
-
-# Game to Map to
-game = GameController()
-
-action_map = {
-    'attack': game.attack,
-    'die': game.die,
-    'eat': game.eat,
-    'examine': game.examine,
-    'help': game.help,
-    'inventory': game.inventory,
-    'look': game.look,
-    'move': game.move,
-    'put': game.put,
-    'take': game.take,
-    'talk': game.talk,
-    'use': game.use,
-}
-
-
-class HomeView(MethodView):
-    def get(self):
-        if 'uid' not in session:
-            session['uid'] = os.urandom(24)
-
-        return render_template('base.html')
-
-
-class GameView(MethodView):
-    def get(self):
-        return json.dumps(action_map.keys())
-
-    def post(self):
-        if 'uid' not in session:
-            session['uid'] = os.urandom(24)
-
-        uid = session['uid'].encode('hex')
-
-        json_request = json.loads(request.data)
-        raw_command = json_request.get('command', '')
-
-        # Split up the command and assign to appropriate variables
-        parts = raw_command.lower().split()
-
-        if len(parts) == 0:
-            return json.dumps({'console': 'I can\'t hear you, say it louder'})
-
-        command = parts[0]
-        args = parts[1:] if len(parts) > 1 else []
-
-        action = action_map.get(command, None)
-
-        if action is None:
-            logging.info('Invalid command requested {0}'.format(command))
-            result = 'That is an invalid command.'
-        else:
-            logging.info('Calling {0} with args: {1}'.format(command, ','.join(args)))
-            try:
-                result = action(uid, *args)
-            except TypeError, e:
-                logging.error('Got error {0}'.format(e))
-                logging.info('Not enough arguments given for command {0}'.format(command))
-                result = 'Not enough arguments given.'
-
-        return json.dumps({'console': result})
 
 ```
 
@@ -192,98 +867,186 @@ def trim_docstring(docstring):
     # Return a single string:
     return '\n'.join(trimmed)
 
+```
 
-class GameData(object):
-    world_map = {
-        'start' : {'connecting_areas':{'n':'dungeon', 's':'dungeon', 'e':'dungeon', 'w':'dungeon'},
-                   'description':'You see that your room is messy and a cat rolling around in a pile of socks...',
-                   'characters':['cat'],
-                   'items':['sock', 'sock', 'sock', 'sock']},
+## base/views.py
 
-        'dungeon' : {'connecting_areas':{'n':'start', 's':'start', 'e':'start', 'w':'start'},
-                   'description':'You see a dungeon... weird... why is that next to your room?',
-                   'characters':[],
-                   'items':[]},
-    }
+```python
+import json
+import logging
+import os
 
-    characters = {
-        'cat':{'script':'Meow...'},
-    }
+from flask import request, session
 
-    items = {
-        'sock':{'description': 'This is not any ordinary sock, it is a mysterious sock...',
-                'use_reaction': 'The mysterious sock did nothing...',
-                'eat_reaction': 'Whelp you just ate a sock... I hope you are proud...'},
-    }
+from flask.views import MethodView
+from flask.templating import render_template
 
-def check_map(area, direction):
-    local_area = GameData().world_map.get(area.get_name())
-    if local_area is not None:
-        connecting_area_id = local_area.get('connecting_areas').get(direction)
-        if connecting_area_id is not None:
-            from base.models import DataStore
-            return DataStore().get_area_by_name(connecting_area_id)
+from base.game_controller import GameController
+
+
+class HomeView(MethodView):
+    def get(self):
+        if 'uid' not in session:
+            session['uid'] = os.urandom(24).encode('hex')
+
+        return render_template('base.html')
+
+
+class GameView(MethodView):
+    def post(self):
+        uid = session['uid']
+
+        json_request = json.loads(request.data)
+        raw_command = json_request.get('command', '')
+        temp_key = json_request.get('tempKey', None)
+
+        # Game to Map to
+        game = GameController(uid, temp_key=temp_key)
+
+        action_map = {
+            'attack': game.attack,
+            'die': game.die,
+            'color': game.color,
+            'eat': game.eat,
+            'font': game.font,
+            'examine': game.examine,
+            'help': game.help,
+            'inventory': game.inventory,
+            'look': game.look,
+            'move': game.move,
+            'put': game.put,
+            'resume': game.resume,
+            'save': game.save,
+            'start': game.start,
+            'welcome': game.welcome,
+            'take': game.take,
+            'talk': game.talk,
+            'use': game.use,
+        }
+
+        # Split up the command and assign to appropriate variables
+        parts = raw_command.lower().split()
+
+        if len(parts) == 0:
+            return json.dumps({'console': 'I can\'t hear you, say it louder'})
+
+        command = parts[0]
+        args = parts[1:] if len(parts) > 1 else []
+
+        action = action_map.get(command, None)
+
+        if action is None:
+            logging.info('Invalid command requested {0}'.format(command))
+            result = 'That is an invalid command.'
+        else:
+            logging.info('Calling {0} with args: {1}'.format(command, ','.join(args)))
+            result = action(*args)
+
+        if type(result) == str or type(result) == unicode:
+            payload = {
+                'console': result,
+            }
+        else:
+            payload = result
+
+        return json.dumps(payload)
+
+```
+
+## base/world.py
+
+```python
+worlds = {}
+
+default = worlds['default'] = {}
+
+default['rooms'] = [
+    {
+        'name': 'room',
+        'description': 'You see that your room is messy and a cat rolling around in a pile of socks...',
+        'characters': ['cat'],
+        'items': ['sock', 'sock', 'sock', 'sock'],
+        'start': True,
+        'connecting_areas': {
+            'n': 'dungeon',
+            's': 'dungeon',
+            'e': 'dungeon',
+            'w': 'dungeon',
+        },
+    },
+    {
+        'name': 'dungeon',
+        'description': 'You see a dungeon... weird... why is that next to your room?',
+        'characters': [],
+        'items': [],
+        'connecting_areas': {
+            'n': 'room',
+            's': 'room',
+            'e': 'room',
+            'w': 'room',
+        },
+    },
+]
+
+default['characters'] = [
+    {
+        'name': 'cat',
+        'script': 'Meow...',
+    },
+]
+
+default['items'] = [
+    {
+        'name': 'sock',
+        'description': 'This is not any ordinary sock, it is a mysterious sock...',
+        'use_reaction': 'The mysterious sock did nothing...',
+        'eat_reaction': 'Whelp you just ate a sock... I hope you are proud...',
+    },
+]
+
+
+def get_area(room_name=None, world_name='default'):
+    world = worlds[world_name]
+
+    if room_name is None:
+        for room in world.get('rooms', []):
+            if room.get('start', False) is True:
+                return room
+        return None
+    else:
+        for room in world.get('rooms', []):
+            if room.get('name', '') == room_name:
+                return room
+        return None
+
+
+def get_character(name, world_name='default'):
+    world = worlds[world_name]
+
+    for character in world.get('characters', []):
+        if character.get('name', '') == name:
+            return character
+
     return None
 
-def generate_test_data(erase_reset=True):
-    from google.appengine.ext import db
-    from base import models
-    print 'Generating Game Data...'
-    if erase_reset:
 
-        to_delete = []
-        to_delete.extend(models.Character.all(keys_only=True).fetch(None))
-        to_delete.extend(models.Item.all(keys_only=True).fetch(None))
-        to_delete.extend(models.Area.all(keys_only=True).fetch(None))
-        to_delete.extend(models.Player.all(keys_only=True).fetch(None))
-        db.delete(to_delete)
-        print '\n(Deleted old data...)\n'
+def get_item(name, world_name='default'):
+    world = worlds[world_name]
 
-    to_put = []
-    print 'Characters'
-    for key, character in GameData().characters.iteritems():
-        new_character = models.Character(name = key,
-                                         script = character['script'])
-        print '********'
-        print '  name: %s\n  script: %s'%(new_character.name, new_character.script)
+    for item in world.get('items', []):
+        if item.get('name', '') == name:
+            return item
 
-        to_put.append(new_character)
-    print '********'
-
-    print '\nItems'
-    for key, item in GameData().items.iteritems():
-        new_item = models.Item(name = key,
-                               description = item['description'],
-                               use_reaction = item['use_reaction'],
-                               eat_reaction = item['eat_reaction'])
-        print '********'
-        print '  name: %s\n  description: %s'%(new_item.name, new_item.description)
-        to_put.append(new_item)
-    print '********'
-
-    print '\nAreas'
-    for key, area in GameData().world_map.iteritems():
-        new_area = models.Area(name = key,
-                               description = area.get('description'),
-                               characters = area.get('characters'),
-                               items = area.get('items'))
-        print '********'
-        print '  name: %s\n  description: %s\n  characters: %s\n  items: %s'%(new_area.name, new_area.description, new_area.characters, new_area.items)
-        to_put.append(new_area)
-    print '********'
-    db.put(to_put)
-
+    return None
 
 ```
 
 ## base/models/__init__.py
 
 ```python
-from .datastore import DataStore
+from .datastore import datastore
 from .character import Character
 from .area import Area
-from .game import Game
-from .game_controller import GameController
 from .item import Item
 from .player import Player
 
@@ -292,16 +1055,69 @@ from .player import Player
 ## base/models/area.py
 
 ```python
-from .datastore import DataStore
+from base import world
+
+from .datastore import datastore
+from .player import Player
 
 from google.appengine.ext import db
 
 
 class Area(db.Model):
-    description = db.StringProperty()
-    name = db.StringProperty()
-    characters = db.StringListProperty()
-    items = db.StringListProperty()
+    name = db.StringProperty(required=True)
+    description = db.StringProperty(required=True)
+    current = db.BooleanProperty(default=False)
+    temp_key = db.StringProperty()
+
+    area_north = db.StringProperty()
+    area_east = db.StringProperty()
+    area_south = db.StringProperty()
+    area_west = db.StringProperty()
+
+    # Relational Properties
+    player = db.ReferenceProperty(Player, collection_name='areas')
+
+    @classmethod
+    def new(cls, player, data, temp_key=None):
+        area = cls(name=data['name'],
+                   temp_key=temp_key,
+                   description=data['description'],
+                   area_north=data['connecting_areas']['n'],
+                   area_east=data['connecting_areas']['e'],
+                   area_south=data['connecting_areas']['s'],
+                   area_west=data['connecting_areas']['w'],
+                   player=player)
+
+        area.put()
+
+        for name in data['items']:
+            item = datastore.get_item_by_name(name)
+            item.owner = area
+            item.put()
+
+        return area
+
+    @classmethod
+    def fetch(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.fetch(None) + saved.fetch(None)
+
+    @classmethod
+    def get(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.get() or saved.get()
 
     def get_name(self):
         return self.name
@@ -309,33 +1125,60 @@ class Area(db.Model):
     def get_description(self):
         return self.description
 
-    def talk_to(self, char_name):
-        if char_name in self.characters:
-            character = DataStore().get_character_by_name(char_name)
-            if character is not None:
-                return character.talk()
-        return 'Character DNE'
+    def get_neighbor(self, d):
+        if d == 'n' or d == 'north':
+            name = self.area_north
+        elif d == 'e' or d == 'east':
+            name = self.area_east
+        elif d == 's' or d == 'south':
+            name = self.area_south
+        elif d == 'w' or d == 'west':
+            name = self.area_west
+        else:
+            return
 
-    def attack(self, char_name, item):
-        if char_name in self.characters:
-            character = DataStore().get_character_by_name(char_name)
-            if character is not None:
-                return character.attack(item)
-        return 'Character DNE'
+        area = Area.get(self.temp_key, name=name, player=self.player)
 
-    def take_item(self, item_name):
-        if item_name in self.items:
-            item = DataStore().get_item_by_name(item_name)
-            if item is not None:
-                self.items.remove(item_name)
-            return item
-        return None
+        if area is None:
+            data = world.get_area(room_name=name)
+            area = Area.new(self.player, data)
+            area.put()
+
+        return area
+
+    def get_character(self, name):
+        character = self.characters.filter('name', name).get()
+
+        if character is None:
+            character = datastore.get_character_by_name(self, name)
+
+        return character
+
+    def talk_to(self, name):
+        character = self.get_character(name)
+
+        if character is None:
+            return 'There is no one named that here.'
+
+        return character.script
+
+    def attack(self, name, item):
+        character = self.get_character(name)
+
+        if character is None:
+            return 'There is no one named that here.'
+
+        return character.attack(item)
+
+    def take_item(self, name):
+        return self.items.filter('name', name).get()
 
     def add_item(self, item):
-        if item is not None:
-            self.items.append(item)
-            return 'You put the {0} down.'.format(item.get_name())
-        return 'What item?'
+        if item is None:
+            return
+
+        item.owner = self
+        item.put()
 
 ```
 
@@ -344,17 +1187,52 @@ class Area(db.Model):
 ```python
 from google.appengine.ext import db
 
+from .area import Area
+
 
 class Character(db.Model):
     name = db.StringProperty()
     script = db.StringProperty()
+    temp_key = db.StringProperty()
+
+    # Relational Properties
+    area = db.ReferenceProperty(Area, collection_name='characters')
+
+    @classmethod
+    def new(cls, area, data, temp_key=None):
+        character = cls(name=data['name'],
+                        temp_key=temp_key,
+                        script=data['script'],
+                        area=area)
+        character.put()
+
+        return character
+
+    @classmethod
+    def fetch(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.fetch(None) + saved.fetch(None)
+
+    @classmethod
+    def get(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.get() or saved.get()
 
     def attack(self, item):
         #TODO: Make attack do something
         return '{0} says: Ouch!'.format(self.name.capitalize())
-
-    def talk(self):
-        return self.script
 
     def get_name(self):
         return self.name
@@ -364,391 +1242,108 @@ class Character(db.Model):
 ## base/models/datastore.py
 
 ```python
+import logging
+
+from base import world
+
 from google.appengine.ext import db
 from google.appengine.api import memcache
 
 
 class DataStore(object):
-    def get_item_by_name(self, item_name):
+
+    def __init__(self):
+        self.uid = ''
+        self.temp_key = None
+        self.player = None
+
+    def get_item_by_name(self, name):
         from base.models import Item
-        return Item.all().filter('name', item_name).get()
 
-    def get_character_by_name(self, name):
+        data = world.get_item(name)
+
+        if data is None:
+            return None
+
+        item = Item.new(data, temp_key=self.temp_key)
+
+        return item
+
+    def get_character_by_name(self, area, name):
         from base.models import Character
-        return Character.all().filter('name', name).get()
 
-    def get_area_by_name(self, name):
+        data = world.get_character(name)
+
+        if data is None:
+            return None
+
+        character = Character.new(area, data, temp_key=self.temp_key)
+
+        return character
+
+    def get_area_by_name(self, name=None):
         from base.models import Area
-        return Area.all().filter('name', name).get()
+
+        area = Area.get(self.temp_key, name=name, player=self.player)
+
+        if area is None:
+            data = world.get_area(room_name=name)
+
+            if data is None:
+                return None
+
+            area = Area.new(self.player, data, temp_key=self.temp_key)
+
+        return area
+
+    def save_game(self):
+        from base import models
+
+        for area in models.Area.all().filter('temp_key', self.temp_key).fetch(None):
+            area.temp_key = None
+            area.put()
+
+        for item in models.Item.all().filter('temp_key', self.temp_key).fetch(None):
+            item.temp_key = None
+            item.put()
+
+        for character in models.Character.all().filter('temp_key', self.temp_key).fetch(None):
+            character.temp_key = None
+            character.put()
 
     def put_player(self, player):
-        memcache.set(player.player_id, player)
         player.put()
 
     def delete_player(self, player):
-        memcache.delete(player.player_id)
         db.delete(player)
 
     def put_area(self, area):
         area.put()
 
-    def get_player(self, uid):
-        from base.models import Player
-        player = memcache.get(uid)
-        if player is not None:
-            return player
+    def touch_player(self):
+        logging.info('Touching player with %s', self.temp_key)
+        player = self.get_player()
 
-        player = Player.all().filter('player_id', uid).get()
         if player is None:
-            player = Player(player_id=uid, inventory=[], current_area_name='start')
-            self.put_player(player)
+            return None
 
-        memcache.add(uid, player)
+        player.temp_key = self.temp_key
+        player.put()
         return player
 
-```
+    def get_player(self):
+        from base.models import Player
 
-## base/models/game.py
+        player = Player.all().filter('player_id', self.uid).get()
+        self.player = player
 
-```python
-from .datastore import DataStore
+        return player
 
-from base import utils
+    def create_player(self):
+        from base.models import Player
+        return Player.new(self.uid, temp_key=self.temp_key)
 
-
-class Game(object):
-    command_list = [
-        'die',
-        'eat',
-        'examine',
-        'help',
-        'inventory',
-        'look',
-        'move',
-        'take',
-        'talk',
-        'use',
-        'put',
-        'attack',
-    ]
-
-    def look(self, uid, direction=""):
-        """
-        Look around at the room you are in.
-
-        Usage:
-            look [<direction>...]
-
-        Options:
-            north       Room to the north
-            south       Room to the south
-            east        Room to the east
-            west        Room to the west
-
-        EXAMPLE:
-            look n s e w
-                Will print the descriptions of all the given rooms.
-
-        NOTES:
-            For convenience, the letters n, s, e, w can also be used.
-        """
-        player = DataStore().get_player(uid)
-        cur_area = player.get_current_area()
-
-        if cur_area is None:
-            return 'It looks like there isn\'t any game data'
-
-        if direction == "":
-            return cur_area.get_description()
-
-        area = utils.check_map(cur_area, direction)
-        if area is not None:
-            return area.get_description()
-        return 'Nothing over there...'
-
-    def move(self, uid, direction):
-        """
-        Move to a given location.
-
-        Usage:
-            move <direction>
-
-        Options:
-            north       Room to the north
-            south       Room to the south
-            east        Room to the east
-            west        Room to the west
-
-        EXAMPLE:
-            move s
-                Will move your current character to the room to the south (if
-                able).
-
-        NOTES:
-            For convenience, the letters n, s, e, w can also be used.
-        """
-        player = DataStore().get_player(uid)
-        area = utils.check_map(player.get_current_area(), direction)
-        if area is not None:
-            to_return = player.set_area(area)
-            DataStore().put_player(player)
-            return to_return
-        return 'Ummmm I can not go over there...'
-
-    def examine(self, uid, item_name):
-        """
-        Examine a given item(s) in your inventory or the room.
-
-        Usage:
-            examine [<item name>...]
-
-        Options:
-            Any valid item(s) name.
-
-        EXAMPLE:
-            examine sock
-                Will print the description for the sock in the current room.
-        """
-        player = DataStore().get_player(uid)
-        item = player.get_item(item_name)
-        if item is not None:
-            return item.get_description()
-        return 'I do not have that item...'
-
-    def talk(self, uid, char_name):
-        """
-        Talk to an NPC that is in your current area.
-
-        Usage:
-            talk <NPC name>
-
-        Options:
-            Any valid NPC name.
-
-        EXAMPLE:
-            talk uncle iroh
-                Will print what Uncle Iroh has to say.
-        """
-        player = DataStore().get_player(uid)
-        area = player.get_current_area()
-        if area is not None:
-            return area.talk_to(char_name)
-        return 'There is no one by that name...'
-
-    def eat(self, uid, item_name):
-        """
-        Eat the given item(s) that you requested.
-
-        Usage:
-            eat [<item name>...]
-
-        Options:
-            Any valid item name in the room or your inventory.
-
-        EXAMPLE:
-            eat cupcake
-                Will consume the cupcake, mmmmmm.... cupcakes.
-        """
-        player = DataStore().get_player(uid)
-        reaction = player.eat_item(item_name)
-        DataStore().put_player(player)
-        return reaction
-
-    def take(self, uid, item_name):
-        """
-        Take the given item that you requested.
-
-        Usage:
-            take <item name>
-
-        Options:
-            Any valid item name in the surrounding area
-
-        EXAMPLE:
-            take sock
-                Will add sock to your inventory.
-        """
-        player = DataStore().get_player(uid)
-        cur_area = player.get_current_area()
-        item = cur_area.take_item(item_name)
-        to_return = player.add_item(item)
-
-        DataStore().put_player(player)
-        DataStore().put_area(cur_area)
-
-        return to_return
-
-    def put(self, uid, item_name):
-        """
-        Put the given item down in the current area.
-
-        Usage:
-            put <item name>
-
-        Options:
-            Any valid item name in your inventory.
-
-        EXAMPLE:
-            put kitten
-                You put the kitten down.
-        """
-        player = DataStore().get_player(uid)
-        cur_area = player.get_current_area()
-        item = player.take_item(item_name)
-
-        return cur_area.add_item(item)
-
-    def use(self, uid, item_name):
-        """
-        Use the given item(s) that you requested.
-
-        Usage:
-            use [<item name>...]
-
-        Options:
-            Any valid item name in your inventory.
-
-        EXAMPLE:
-            use jetpack
-                You are now floating in the air.
-        """
-        player = DataStore().get_player(uid)
-        return player.use_item(item_name)
-
-    def inventory(self, uid):
-        """
-        Look into your inventory.
-
-        Usage:
-            look
-
-        Options:
-            None
-
-        EXAMPLE:
-            inventory
-                Sock
-                Sword
-                Trombone
-        """
-        player = DataStore().get_player(uid)
-        inventory = player.get_inventory()
-        if len(inventory):
-            return '\n'.join(inventory)
-        return 'Your inventory is empty...'
-
-    def attack(self, uid, name, item_name):
-        """
-        Attack the given character with the given item
-
-        Usage:
-            use <character name> <item name>
-
-        Options:
-            Any valid character in the area.
-            Any valid item name in your inventory.
-
-        EXAMPLE:
-            attack gollum
-                Gollum: My preciouss...
-        """
-        player = DataStore().get_player(uid)
-        item = player.get_item(item_name)
-        cur_area = player.get_current_area()
-
-        return cur_area.attack(name, item)
-
-    def die(self, uid):
-        """
-        Mysteriously become lifeless....
-
-        Usage:
-            die
-
-        Options:
-            None
-
-        EXAMPLE:
-            die
-                You are now dead...
-        """
-        player = DataStore().get_player(uid)
-        DataStore().delete_player(player)
-        return 'You are now dead...'
-
-    def help(self, uid, command=None):
-        """
-        Now you are just testing the limits of my knowlege.
-
-        """
-        if command is not None and command in Game.command_list:
-            help_str = object.__getattribute__(self, command).__doc__
-            return utils.trim_docstring(help_str)
-
-        result = ['List of available commands:\n']
-
-        if command is not None and command not in Game.command_list:
-            return 'You expect me to know what that is?'
-
-        for cmd in Game.command_list:
-            if cmd == 'help':
-                continue
-
-            help_str = object.__getattribute__(self, cmd).__doc__
-
-            # We only want the description
-            line = '\t{command}\t{desc}'.format(command=cmd.lstrip(),
-                                                desc=help_str.split('\n')[1])
-
-            result.append(line)
-
-        return '\n'.join(result)
-
-```
-
-## base/models/game_controller.py
-
-```python
-from base.models import Game
-
-
-class GameController(object):
-
-    def attack(self, uid, name, item_name):
-        return Game().attack(uid, name, item_name)
-
-    def look(self, uid, direction=""):
-        return Game().look(uid, direction)
-
-    def move(self, uid, direction):
-        return Game().move(uid, direction)
-
-    def examine(self, uid, item_name):
-        return Game().examine(uid, item_name)
-
-    def talk(self, uid, char_name):
-        return Game().talk(uid, char_name)
-
-    def eat(self, uid, item_name):
-        return Game().eat(uid, item_name)
-
-    def take(self, uid, item_name):
-        return Game().take(uid, item_name)
-
-    def put(self, uid, item_name):
-        return Game().put(uid, item_name)
-
-    def die(self, uid):
-        return Game().die(uid)
-
-    def use(self, uid, item_name):
-        return Game().use(uid, item_name)
-
-    def inventory(self, uid):
-        return Game().inventory(uid)
-
-    def help(self, uid, command=None):
-        return Game().help(uid, command)
+datastore = DataStore()
 
 ```
 
@@ -761,76 +1356,145 @@ from google.appengine.ext import db
 class Item(db.Model):
     name = db.StringProperty()
     description = db.StringProperty()
+    available = db.BooleanProperty(default=True)
     eat_reaction = db.StringProperty()
     use_reaction = db.StringProperty()
+    temp_key = db.StringProperty()
 
-    def get_description(self):
-        return self.description
+    # Relational Attributes
+    owner = db.ReferenceProperty(collection_name='items')
 
-    def eat(self):
-        return self.eat_reaction
+    @classmethod
+    def new(cls, data, temp_key=None):
+        item = cls(name=data['name'],
+                   temp_key=temp_key,
+                   description=data['description'],
+                   eat_reaction=data['eat_reaction'],
+                   use_reaction=data['use_reaction'])
+        item.put()
 
-    def use(self):
-        return self.use_reaction
+        return item
 
-    def get_name(self):
-        return self.name
+    @classmethod
+    def fetch(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.fetch(None) + saved.fetch(None)
+
+    @classmethod
+    def get(cls, temp_key, **kwargs):
+        temp = cls.all().filter('temp_key', temp_key)
+        saved = cls.all().filter('temp_key', None)
+
+        for k, v in kwargs.iteritems():
+            temp.filter(k, v)
+            saved.filter(k, v)
+
+        return temp.get() or saved.get()
 
 ```
 
 ## base/models/player.py
 
 ```python
-from .datastore import DataStore
+import logging
+
+from .datastore import datastore
 
 from google.appengine.ext import db
 
 
 class Player(db.Model):
-    player_id = db.StringProperty()
-    inventory = db.StringListProperty()
-    current_area_name = db.StringProperty()
+    player_id = db.StringProperty(required=True)
+    theme = db.StringProperty(default='default')
+    font = db.StringProperty(default='monospace')
+    current_area = db.ReferenceProperty()
+    temp_key = db.StringProperty()
 
-    def get_inventory(self):
-        return self.inventory
+    @classmethod
+    def new(cls, player_id, temp_key=None):
+        player = cls(player_id=player_id,
+                     temp_key=temp_key)
+        player.put()
+
+        return player
+
+    def inventory(self):
+        from base.models import Item
+
+        return Item.fetch(self.temp_key, owner=self, available=True)
+
+    def locations(self):
+        from base.models import Area
+
+        return Area.fetch(self.temp_key, player=self, available=True)
 
     def get_item(self, item_name):
-        if item_name in self.inventory:
-            return DataStore().get_item_by_name(item_name)
+        for item in self.inventory():
+            if item.name == item_name:
+                return item
+
         return None
 
+    def change_theme(self, theme):
+        self.theme = theme
+
+    def change_font(self, font):
+        self.font = font
+
     def add_item(self, item):
-        if item is not None:
-            self.inventory.append(item.get_name())
-            return item.get_description()
-        return "What item?"
+        if item is None:
+            return
+
+        item.owner = self
+        item.put()
+
+    def save(self):
+        datastore.save_game()
 
     def get_current_area(self):
-        return DataStore().get_area_by_name(self.current_area_name)
+        if self.current_area is None:
+            area = datastore.get_area_by_name()
+            self.set_current_area(area)
+        elif self.current_area.temp_key != self.temp_key:
+            area = datastore.get_area_by_name(self.current_area.name)
+            self.set_current_area(area)
 
-    def set_area(self, area):
-        self.current_area_name = area.get_name()
-        return area.get_description()
+        return self.current_area
+
+    def set_current_area(self, area):
+        self.current_area = area
+        self.put()
 
     def use_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            return item.use()
-        return "Item DNE"
+
+        if item is None:
+            return 'You don\'t have that item in your inventory.'
+
+        return item.use_reaction
 
     def eat_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            self.inventory.remove(item_name)
-            return item.eat()
-        return "Item DNE"
+
+        if item is None:
+            return 'You don\'t have that item in your inventory.'
+
+        item.available = False
+        item.put()
+
+        return item.eat_reaction
 
     def take_item(self, item_name):
         item = self.get_item(item_name)
-        if item is not None:
-            self.inventory.remove(item_name)
-            return item
-        return None
+        item.delete()
+
+        return item
 
 ```
 
@@ -846,8 +1510,12 @@ a { text-decoration: none; }
 body {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     font-size: 14px;
-    background-color: #1d1f21;
-    color: #E4E7E7;
+    background-color: hsla(210, 6%, 12%, 1);
+    color: hsla(180, 6%, 90%, 1);
+    -webkit-transition: background-color 1000ms linear;
+       -moz-transition: background-color 1000ms linear;
+         -o-transition: background-color 1000ms linear;
+            transition: background-color 1000ms linear;
 }
 
 /* We could make this webpage responsive o.O */
@@ -856,9 +1524,13 @@ body {
     width: 940px;
     height: 100%;
     margin: 0 auto;
-    background-color: #26282B;
+    background-color: hsla(216, 6%, 16%, 1);
     overflow: hidden;
     position: relative;
+    -webkit-transition: background-color 1000ms linear;
+       -moz-transition: background-color 1000ms linear;
+         -o-transition: background-color 1000ms linear;
+            transition: background-color 1000ms linear;
 }
 
 .console {
@@ -877,6 +1549,12 @@ body {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     margin-bottom: 12px;
     font-size: 14px;
+    white-space: pre-wrap;
+}
+
+.console pre a.command {
+    color: #D87D50;
+    border-bottom: 1px dashed #E4E7E7;
 }
 
 .orange {
@@ -914,6 +1592,10 @@ body {
     background-color: #26282B;
     position: absolute;
     z-index: 1;
+    -webkit-transition: background-color 1000ms linear;
+       -moz-transition: background-color 1000ms linear;
+         -o-transition: background-color 1000ms linear;
+            transition: background-color 1000ms linear;
 }
 
 .prompt label {
@@ -960,98 +1642,154 @@ body {
 
 
 (function (root, $) {
-
     var $console = $('.console div.content'),
         $scroll = $('.console'),
-        $prompt = $('#prompt'),
-        command = function (text) {
-            $('<pre>')
-                .text('> ' + text)
-                .appendTo($console);
+        $prompt = $('.prompt'),
+        $promptInput = $('#prompt'),
+        $container = $('.container'),
+        $body = $('body'),
+        findCommands = function (text) {
+            return text.replace(/`(.*)`/g, function (match, command) {
+                return $('<div>').append($('<a>').addClass('command').attr('href', '#').text(command)).html();
+            });
+        },
+        escape = function (text) {
+            return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        },
+        command = function (text, hide) {
+            var $indicator = $('.prompt label'),
+                chars = '|/-\\',
+                index = 0,
+                requestFinished = false,
+                time = 0,
+                loader = setInterval(function () {
+                    $indicator.text(chars[index]);
+
+                    index = (index + 1) % chars.length;
+
+                    if (requestFinished === true) {
+                        $indicator.html('&gt;');
+                        clearInterval(loader);
+                    }
+                }, 200),
+                parts = text.split(' '),
+                cmd = parts[0],
+                tempKey = $('body').data('tempKey');
+
+            if (!hide) {
+                $('<pre>')
+                    .text('> ' + text)
+                    .appendTo($console);
+            }
+
+            if (cmd in localCommands) {
+                var stop = localCommands[cmd]();
+                requestFinished = true;
+                if (stop) return;
+            }
+
+            $.ajax({
+                url: '/controller/',
+                type: 'POST',
+                data: JSON.stringify({'command': text, 'tempKey': tempKey}),
+                contentType: 'application/json',
+                dataType: 'json'
+            }).done(function(data){
+                if('console' in data) {
+                    reply(data.console);
+                }
+                if ('callback' in data) {
+                    var list = [].concat(data.callback);
+                    for(var i = 0; i < list.length; i++) {
+                        var cb = list[i]['name'],
+                            args = list[i]['args'];
+
+                        callbacks[cb].apply(this, [].concat(args));
+                    }
+                }
+                requestFinished = true;
+                $promptInput.focus();
+            });
         },
         reply = function (text) {
+            var filtered = findCommands(escape(text));
             $('<pre>')
-                .text(text)
+                .html(filtered)
                 .appendTo($console);
+            scrollConsole();
+        },
+        attachUnload = function () {
+            $(window).on('beforeunload', function () {
+                return 'Leaving Nebulous Adventure will cause you to lose all your unsaved progress.'
+            });
+        },
+        removeUnload = function() {
+            $(window).off('beforeunload');
+        },
+        scrollConsole = function () {
+            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
         },
         resetPrompt = function () {
-            $prompt.val('');
-            $scroll.get(0).scrollTop = $scroll.get(0).scrollHeight;
+            $promptInput.val('');
+            scrollConsole();
+        },
+        clearCommand = function () {
+            $console.html('');
+            return true;
+        },
+        startCommand = function () {
+            clearCommand();
+        },
+        localCommands = {
+            'clear': clearCommand,
+        },
+        tempKeyCallback = function (key) {
+            console.log('Temp key callback');
+            $('body').data('tempKey', key);
+            attachUnload();
+        },
+        loadCallback = function (settings) {
+            console.log('Loading callback');
+            console.log(settings);
+            if (settings.theme) {
+                $body.css('backgroundColor', settings.theme.body);
+                $container.css('backgroundColor', settings.theme.container);
+                $prompt.css('backgroundColor', settings.theme.container);
+            }
+            if (settings.font) {
+                $('.console div.content > pre').css('fontFamily', settings.font)
+            }
+            scrollConsole();
+        },
+        callbacks = {
+            'tempKey': tempKeyCallback,
+            'load': loadCallback,
         };
 
     // Focus prompt on load
     $(document).ready(function () {
-        $prompt.focus();
+        $promptInput.focus();
+        command('welcome', true);
     });
-
-    var clearFunction = function() {
-        $console.html('');
-    };
-
-    var localCommands = {
-        'clear':clearFunction
-    };
 
     // Add a submit handler
     $('.prompt form').submit(function () {
-        var $indicator = $('.prompt label'),
-            chars = '|/-\\',
-            index = 0,
-            requestFinished = false,
-            time = 0,
-            loader = setInterval(function () {
-                $indicator.text(chars[index]);
-
-                index = (index + 1) % chars.length;
-
-                if (requestFinished === true) {
-                    $indicator.html('&gt;');
-                    clearInterval(loader);
-                }
-            }, 200);
-
-        command($prompt.val());
-        if ($prompt.val() in localCommands)
-        {
-            localCommands[$prompt.val()]();
-            requestFinished = true;
-            resetPrompt();
-        }
-        else
-        {
-            $.ajax({
-                url: '/controller/',
-                type: 'POST',
-                data: JSON.stringify({'command': $prompt.val()}),
-                contentType: 'application/json',
-                dataType: 'json'
-            }).done(function(data){
-                if(data.hasOwnProperty("console")) {
-                    reply(data.console);
-                    requestFinished = true;
-                }
-                resetPrompt();
-            });
-        }
-
+        var val = $promptInput.val();
+        resetPrompt();
+        command(val);
         return false;
     });
+
     // Show help
     $('.prompt a').on('click', function () {
         command('help');
+    });
 
-        $.ajax({
-            url: '/controller/',
-            type: 'POST',
-            data: JSON.stringify({'command': 'help'}),
-            contentType: 'application/json',
-            dataType: 'json'
-        }).done(function(data){
-            if(data.hasOwnProperty("console")) {
-                reply(data.console);
-            }
-            resetPrompt();
-        });
+    $('.console').on('click', 'a.command', function (e) {
+        var $this = $(this);
+
+        command($this.text());
+        e.preventDefault();
     });
 }(window, jQuery));
 
@@ -1072,18 +1810,6 @@ body {
 <div class="container">
     <div class="console">
         <div class="content">
-            <p>
-                There is a fifth dimension beyond that which is known to man.
-            </p>
-            <p>
-                It is a dimension as vast as space and as timeless as infinity.
-            </p>
-            <p>
-                It is the middle ground between light and shadow, between science and superstition, and it lies between the pit of man's fears and the summit of his knowledge.
-            </p>
-            <p>
-                This is the dimension of imagination. It is a journey which we call "<span class="orange">The Nebulous Adventure</span>".
-            </p>
         </div>
     </div>
     <div class="prompt">
