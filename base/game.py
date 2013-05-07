@@ -255,11 +255,9 @@ class Game(object):
 
         if player is None:
             return 'Unable to find player with that code.'
-        else:
-            current_area = player.get_current_area()
-            return current_area.description
 
-        return 'Resuming game'
+        current_area = player.get_current_area()
+        return current_area.description
 
     def look(self, direction=""):
         """
