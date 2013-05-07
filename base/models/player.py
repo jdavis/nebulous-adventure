@@ -39,7 +39,6 @@ class Player(db.Model):
 
     def change_theme(self, theme):
         self.theme = theme
-        self.put()
 
     def change_font(self, font):
         self.font = font

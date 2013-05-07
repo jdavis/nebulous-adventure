@@ -148,6 +148,8 @@ class Game(object):
 
         player.change_theme(theme)
 
+        datastore.put_player(player)
+
         payload = {}
         payload['console'] = 'Changing color...'
         payload['callback'] = {
