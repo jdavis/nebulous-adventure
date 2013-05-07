@@ -11,7 +11,7 @@ Use Cases
 
 **MSS**:
 
-1. The user receives two url links (public & private) and a key that they can use to resume their game.
+1. The user receives a key that lets them resume their game.
 
 ## Resume
 
@@ -36,7 +36,7 @@ Use Cases
 
 **MSS**:
 
-1. User provides hexadecimal codes to change font and theme colors.
+1. User provides a theme option to choose from.
 2. The user is notified of success by adjusting the colors on their console.
 
 ## Change Font Settings

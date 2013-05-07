@@ -1,18 +1,27 @@
-Diagram Fragments 
+Diagram Fragments
 =================
 
 ## GameController
-* s = welcome():String
-* s = start(key:String):String
-
+* s = save():String
+* s = resume(key:String):String
+* b = change\_colors(theme:String):Boolean
+* b = change\_font(font:String):Boolean
 
 ## Game
-* s = welcome(uid:String):String
-* s = start(uid:String, key:String):String
+* s = save():String
+* s = resume(key:String):String
+* b = change\_colors(theme:String):Boolean
+* b = change\_font(font:String):Boolean
 
+## Player
+* a = current\_area():Area
+* s = save():String
+* change\_theme(theme:String)
+* change\_font(font:String)
 
+## Area
+* s = description():String
 
 ## DataStore
-* save_game():Void
-* p = touch_player():Player
-
+* p = get\_player():Player
+* b = put\_player(p:Player):Boolean
