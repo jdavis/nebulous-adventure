@@ -42,7 +42,6 @@ class Player(db.Model):
 
     def change_font(self, font):
         self.font = font
-        self.put()
 
     def add_item(self, item):
         if item is None:

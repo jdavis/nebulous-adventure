@@ -188,6 +188,8 @@ class Game(object):
 
         player.change_font(font)
 
+        datastore.put_player(player)
+
         payload = {}
         payload['console'] = 'Changing font...'
         payload['callback'] = {
